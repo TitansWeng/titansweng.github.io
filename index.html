@@ -1,0 +1,85 @@
+ 
+  <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="CheckInSystemByGoogleSheet">
+    <meta name="author" content="Nick">
+
+    <title>名師介紹所_資訊系統</title>
+    <script src="js/main.js"></script>
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="css/dashboard.css" rel="stylesheet">
+    <script src="js/jquery-3.1.0.min.js"></script>
+
+  </head>
+
+  <body onload= "update_data(),update_time()" >
+
+     <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">名師介紹所_點名系統</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+          <ul class="nav nav-sidebar">
+            <li class="active"><a href="index.html">點名狀況</a></li>
+            <li><a href="#">課程總表</a></li>
+            <li><a href="#">成績查詢</a></li>
+            <li><a href="status.html">簽到模式</a></li>
+            <li><a href="#"></a></li>
+            <li><a href="#"></a></li>
+          </ul>
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <h1 class="page-header">報到模式</h1>
+          <div class="form-group">
+            <h2>
+              <span class="label label-default">現在時間：</span>
+              <span class="label label-default" id="now_time"></span><br><br>
+            </h2>
+            <div class="form-horizontal">
+              <div class="form-group form-group-lg">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+         <!-- <h1 class="page-header">報到資訊</h1>
+
+          <div class="row placeholders">
+            <div class="col-xs-6 col-sm-3 placeholder">
+              <img src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" width="200" height="200" class="img-responsive" alt="Generic placeholder thumbnail">
+              <h4>報到比例</h4>
+              <span class="text-muted">全部人數：</span><br>
+              <span class="text-muted">已到人數：</span><br>
+              <span class="text-muted">未到人數：</span>
+            </div>
+          </div>-->
+
+          <h2 class="sub-header">報到清單</h2>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead id="table_head">
+              </thead>
+              <tbody id="table_body">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script src="js/main.js"></script>
+  </body>
+</html>

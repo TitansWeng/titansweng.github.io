@@ -1,0 +1,81 @@
+   <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+      <meta name="description" content="CheckInSystemByGoogleSheet">
+      <meta name="author" content="Nick">
+
+      <title>名師介紹所_點名系統</title>
+      <script src="js/main.js"></script>
+      <!-- Bootstrap core CSS -->
+      <link href="css/bootstrap.min.css" rel="stylesheet">
+      <!-- Custom styles for this template -->
+      <link href="css/dashboard.css" rel="stylesheet">
+      <script src="js/jquery-3.1.0.min.js"></script>
+
+
+    </head>
+
+    <body onload= "update_time()" >
+
+      <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <a class="navbar-brand" href="index.html">名師介紹所_點名系統</a>
+          </div>
+        </div>
+      </nav>
+
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-sm-3 col-md-2 sidebar">
+            <ul class="nav nav-sidebar">
+              <li><a href="index.html">點名狀況</a></li>
+              <li class="active"><a href="status.html">簽到模式</li>
+              <li><a href="#"></a></li>
+              <li><a href="#"></a></li>
+            </ul>
+          </div>
+
+
+          <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <h1 class="page-header">報到模式</h1>
+            <div class="form-group">
+              <h2>
+                <span class="label label-default">現在時間：</span>
+                <span class="label label-default" id="now_time"></span><br><br>
+              </h2>
+              <div class="form-horizontal">
+
+                <div class="form-group form-group-lg">
+                  <label class="col-sm-2 control-label" for="CheckIn_option">報到項目</label>
+                  <div class="col-sm-3">
+                    <select class="form-control input-lg">
+                      <option value="1">2021級學測班</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group form-group-lg">
+                  <label class="col-sm-2 control-label" for="Check_In">報到：</label>
+                  <div class="col-sm-3">
+                    <input class="form-control" type="text" id="checkInNumber" placeholder="報到前先點我">
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <h2 class="sub-header"　id="check_result">報到資訊</h2>
+            <div id ="result"></div>
+          </div>
+        </div>
+      </div>
+      <script src="js/main.js"></script>
+    </body>
+  </html>
