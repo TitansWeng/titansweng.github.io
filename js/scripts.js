@@ -15,6 +15,21 @@
 	  Navbar 
 	-------------------------------------------------------------------------------*/
 	$(function(){
+		$('#airplaneticket').hover(function(){
+			$("#airplaneticketinfo").slideToggle("slow");
+		  });
+		$("#stay").hover(function(){
+			$("#stayinfo").slideToggle("slow");
+		  });
+		$("#meals").hover(function(){
+			$("#mealsinfo").slideToggle("slow");
+		});
+		$("#transportation").hover(function(){
+			$("#transportationinfo").slideToggle("slow");
+			});
+		});
+	/*  
+	$(function(){
 		$("#1st").click(function(){
 			$("#1stcon").slideToggle("slow");
 		  });});
@@ -30,7 +45,7 @@
 		$("#4th").click(function(){
 			$("#4thcon").slideToggle("slow");
 		  });});	  
-
+	*/
 	navbar.affix({
 	  offset: {
 	    top: 50

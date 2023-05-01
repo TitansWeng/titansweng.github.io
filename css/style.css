@@ -2332,6 +2332,19 @@ a.brand:focus{
   margin-bottom: 2rem;
 }
 
+.feeinfo {
+  font-weight: 600;
+  font-size: 1.285rem;
+  line-height: 1.3333;
+  letter-spacing: 0;
+  color: #fff;
+  display:none;
+}
+
+.pull-middle {
+  text-align: center;
+}
+
 .icon-quote{
   display: inline-block;
   margin-top: -0.6rem;
@@ -3739,6 +3752,9 @@ a.brand:focus{
     float: right;
   }
 
+  .pull-sm-middle{
+    text-align: center;
+  }
 
   /* Sidebar Menu */
 
@@ -3852,13 +3868,17 @@ a.brand:focus{
 
   /* Helpers */
 
-
+  .pull-md-left{
+    float: right;
+  }
 
   .pull-md-right{
     float: right;
   }
 
-
+  .pull-md-middle{
+    text-align: center;
+  }
   /* Sidebar Menu */
 
 
@@ -3995,12 +4015,17 @@ a.brand:focus{
 
 
 
+  .pull-lg-left{
+    float: left;
+  }
+
   .pull-lg-right{
     float: right;
   }
 
-
-
+  .pull-lg-middle{
+    text-align: center;
+  }
   /* Section Projects */
 
 
@@ -7546,6 +7571,9 @@ a.brand:focus{
     float: right;
   }
 
+  .pull-sm-middle{
+    text-align: center;
+  }
 
   /* Sidebar Menu */
 
@@ -7659,11 +7687,19 @@ a.brand:focus{
 
   /* Helpers */
 
-
+  .pull-md-left{
+    float: left;
+  }
 
   .pull-md-right{
     float: right;
   }
+
+  .pull-md-middle{
+    text-align: center;
+  }
+
+
 
 
   /* Sidebar Menu */
@@ -7800,13 +7836,17 @@ a.brand:focus{
 
   /* Helpers */
 
-
+  .pull-lg-left{
+    float: left;
+  }
 
   .pull-lg-right{
     float: right;
   }
 
-
+  .pull-lg-middle{
+    text-align: center;
+  }
 
   /* Section Projects */
 

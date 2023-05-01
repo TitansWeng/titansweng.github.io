@@ -29,11 +29,11 @@
 
     <div class="menu"> 
       <span class="close-menu icon-cross2 right-boxed"></span>
-      <div class="menu-lang right-boxed">
+      <!--<div class="menu-lang right-boxed">
         <a href="" class="active">本頁</a>
         <a href="">Fra</a>
         <a href="">Ger</a>
-      </div>
+      </div>-->
       <ul class="menu-list right-boxed">
         <li  data-menuanchor="page1">
           <a  href="#page1">首頁</a>
@@ -93,13 +93,13 @@
       </div>
     </header>
     <div class="copy-bottom white boxed">© Titans 2023</div>
-    <div class="lang-bottom white boxed">
+    <!--<div class="lang-bottom white boxed">
       <div class="menu-lang">
         <a href="" class="active">首頁</a>
         <a href="">Fra</a>
         <a href="">Ger</a>
       </div>
-    </div>
+    </div>-->
     <div class="pagepiling">
       <div data-anchor="page1" class="pp-scrollable text-white section section-1">
         <div class="scroll-wrap">
@@ -107,13 +107,12 @@
           <div class="scrollable-content">
             <div class="vertical-centred">
               <div class="boxed boxed-inner">
-                <div class="vertical-title hidden-xs hidden-sm"><span>Introduce</span></div>
                 <div class="boxed">
                   <div class="container">
                     <div class="intro">
                       <div class="row">
                         <div class="col-md-8 col-lg-6">
-                          <p class="subtitle-top">2024 冬<br>畢業班 卒業旅行 1.29 ~ 2.9</p>
+                          <p class="subtitle-top">2024 冬<br>畢業班 卒業旅行 1.29 ~ 2.7</p>
                           <h1 class="display-2 text-white"><span class="text-primary">雪</span>的記憶</h1>
                           <div class="hr-bottom"></div>
                         </div>
@@ -132,7 +131,6 @@
             <div class="scrollable-content">
               <div class="vertical-centred">
                 <div class="boxed boxed-inner">
-                  <div class="vertical-title hidden-xs hidden-sm"><span>testimonials</span></div>
                   <div class="boxed">
                     <div class="container">
                       <div class="intro">
@@ -201,7 +199,6 @@
           <div class="scrollable-content">
             <div class="vertical-centred">
               <div class="boxed boxed-inner goodspeak">
-                <div class="vertical-title hidden-xs hidden-sm"><span>my works</span></div>
                 <div class="boxed">
                   <div class="container">
                     <div class="intro">
@@ -274,7 +271,6 @@
           <div class="scrollable-content">
             <div class="vertical-centred">
               <div class="boxed boxed-inner">
-                <div class="vertical-title text-dark hidden-xs hidden-sm"><span>Services</span></div>
                 <div class="boxed">
                   <div class="container">
                     <div class="intro">
@@ -287,25 +283,52 @@
                         <div class="col-md-6 col-lg-5 col-md-offset-1 col-lg-offset-2">
                           <div class="progress-bars">
                             <div class="clearfix">
-                              <div class="number pull-left"><h4>＋機票</h4></div>
+                              <div class="number pull-left" id="airplaneticket"><h4>＋機票</h4></div>
                               <div class="number pull-right"><h4>NT15,000</h4></div>
                             </div>
                             <div class="clearfix">
-                              <div class="number pull-left"><h4>＋住宿</h4></div>
+                              <div class="feeinfo" id="airplaneticketinfo">
+                                <div class="number pull-left" >台北桃園 ⇄ 東京羽田</div><div class="number pull-right">¥10,714</div></br>
+                              </div>
+                            </div>   
+                            <div class="clearfix">
+                              <div class="number pull-left"  id="stay"><h4>＋住宿</h4></div>
                               <div class="number pull-right"><h4>NT10,000</h4></div>
                             </div>
                             <div class="clearfix">
-                              <div class="number pull-left"><h4>＋餐食</h4></div>
+                              <div class="feeinfo" id="stayinfo">
+                                <div class="number pull-left">LYURO 東京清澄 THE SHARE HOTELS</div><div class="number pull-right">¥10,714</div></br>
+                                <div class="number pull-left">VILLA HAKONE湖空</div><div class="number pull-right">¥12,857</div></br>
+                                <div class="number pull-left">箱根・芦ノ湖 はなをり</div><div class="number pull-right">¥25,000</div></br>
+                                <div class="number pull-left">APA幕張東京灣度假酒店</div><div class="number pull-right">¥3,429</div></br>
+                              </div>
+                            </div>                           
+                            <div class="clearfix">
+                              <div class="number pull-left"  id="meals"><h4>＋餐食</h4></div>
                               <div class="number pull-right"><h4>NT6,000</h4></div>
                             </div>
                             <div class="clearfix">
-                              <div class="number pull-left"><h4>＋交通</h4></div>
+                              <div class="feeinfo" id="mealsinfo">
+                                <div class="number pull-left">LYURO 東京清澄</div><div class="number pull-right">¥10,714</div></br>
+                              </div>
+                            </div>   
+                            <div class="clearfix">
+                              <div class="number pull-left"   id="transportation"><h4>＋交通</h4></div>    
                               <div class="number pull-right"><h4>NT10,780</h4></div>
-                              <div class="line-bottom"></div>
                             </div>
                             <div class="clearfix">
+                              <div class="feeinfo"  id="transportationinfo">
+                                <div class="number pull-left">東京地鐵⼀⽇券｜Tokyo Subway Ticket</div><div class="number pull-right">¥800</div></br>
+                                <div class="number pull-left">JR東京廣域周遊券｜JR Tokyo Wide PASS</div><div class="number pull-right">¥10,180</div></br>
+                                <div class="number pull-left">租⾞＋油錢＋過路費</div><div class="number pull-right">¥12,000</div></br>
+                                <div class="number pull-left">滑雪雪票</div><div class="number pull-right">¥10,500</div></br>
+                                <div class="number pull-left">滑雪雪具</div><div class="number pull-right">¥9000</div></br>
+                              </div>
+                            </div>   
+                            <div class="clearfix">
                               <div class="number pull-left"><h3>預估總計</h3></div>
-                              <div class="number pull-right"><h3>NT10,780</h3></div>
+                              <div class="number pull-right"><h3>NT41,000</h3></div>
+                              <div class="line-bottom"></div>
                             </div>
                             <div class="clearfix">
                             </div>
@@ -322,21 +345,16 @@
       </div>
        <div data-anchor="page5" class="pp-scrollable text-white section section-6">
         <div class="scroll-wrap">
-          <div class="section-bg" style="background-image:url(images/bg/bg4.jpg);"></div>
+          <div class="section-bg" style="background-image:url(images/bg/bg2-6.jpg);"></div>
             <div class="scrollable-content">
               <div class="vertical-centred">
                 <div class="boxed boxed-inner">
-                  <div class="vertical-title hidden-xs hidden-sm"><span>testimonials</span></div>
                   <div class="boxed">
                     <div class="container">
                       <div class="intro">
                         <div class="row goodspeak">
-                          <span class="icon-quote ion-quote"></span>
-                          <h2 class="title-uppercase text-white">三百年前，接受過牛橋教育的富有的英國年輕人開始前往法國和義大利各地跋涉，尋求藝術、文化和西方文明的根源。憑藉幾乎無限的資金，貴族接連數月或數年漫遊各地，他們訂購繪畫，完善自己的語言技能，與歐洲大陸上流社會交往。</h2>
-                          <span class="icon-quote ion-quote pull-right"></span>
-                          <h3 class="text-white pull-right">紐約時報　</h3>
-
-                          
+                          <h3 class="text-white">行程安排</h3>
+                          <h2 class="title-uppercase text-white pull-middle">尚未開放，敬請期待</h2>
                         </div>
                       </div>
                     </div>
@@ -477,13 +495,36 @@
           <div class="scrollable-content">
             <div class="vertical-centred">
               <div class="boxed boxed-inner">
-                <div class="vertical-title text-dark hidden-xs hidden-sm"><span>Partners</span></div>
                 <div class="boxed">
                   <div class="container">
                     <div class="intro overflow-hidden">
                       <div class="row">
-                        <div class="col-md-12">
-                          <div class="row-partners">
+                        <div class="col-md-6">
+                          <widgetbot
+                            server="1000244578315685968"
+                            channel="1100070193008476250"
+                            width="500"
+                            height="500">
+                          </widgetbot>
+                          <script src="https://cdn.jsdelivr.net/npm/@widgetbot/html-embed"></script>
+                          <script src='https://cdn.jsdelivr.net/npm/@widgetbot/crate@3' async defer>
+                            const Button = new Crate({
+                                server: '1000244578315685968', // 名師介紹所 G.E.I
+                                channel: '1100070193008476250', // #卒業旅行－東京冬今🌸🗻♨🍤🍣👹🎎⛩🎏
+                                glyph: ['https://cdn.discordapp.com/avatars/1003728258451394560/30ff8d6445c14ce824996d8c11bd487e.png', '100%']
+                            })
+                            setInterval(() => {
+                              Button.options.glyph = ['https://cdn.discordapp.com/avatars/1003728258451394560/30ff8d6445c14ce824996d8c11bd487e.png', '100%']
+                              Button.notify({
+                                content: '喵',
+                                timeout: 6000
+                              })
+                            }, 1500)                      
+                          </script>
+                        </div>
+                        <div class="col-md-6">
+                          <iframe src="https://discord.com/widget?id=1000244578315685968&theme=dark" width="500" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+                          <!--<div class="row-partners">
                             <div class="col-partner">
                               <div class="partner-inner"><img alt="" src="images/partners/1.png"></div>
                             </div>
@@ -508,7 +549,7 @@
                             <div class="col-partner">
                               <div class="partner-inner"><img alt="" src="images/partners/2.png"></div>
                             </div>
-                          </div>
+                          </div> -->
                         </div>
                       </div>
                     </div>
