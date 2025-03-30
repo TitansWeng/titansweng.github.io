@@ -3,19 +3,32 @@
 <head>
   <title>點數管理</title>
   <style>
-    body { font-family: sans-serif; }
-    .container { width: 300px; margin: 50px auto; }
+    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
+    .container, .scan-container, .update-container { width: 300px; margin-bottom: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
     label { display: block; margin-bottom: 5px; }
-    input[type="text"], input[type="number"] { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+    input[type="number"], input[type="text"], select { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
     button { padding: 10px 15px; margin-right: 10px; cursor: pointer; }
-    #message { margin-top: 20px; font-weight: bold; }
+    #message { margin-top: 10px; font-weight: bold; }
+    .list-container, .leaderboard-container { margin-top: 20px; border: 1px solid #eee; padding: 15px; border-radius: 5px; }
+    h2 { margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+    .student-info { margin-top: 15px; border: 1px solid #ddd; padding: 10px; border-radius: 3px; display: none; }
+    .student-info h3 { margin-top: 0; }
+    #scanError, #updateError { color: red; margin-top: 10px; display: none; }
+    #scanResult { margin-top: 10px; }
   </style>
 </head>
 <body>
+  <h1>點數管理系統</h1>
+
   <div class="container">
-    <h1>點數管理</h1>
+    <h2>增減點數 (選單)</h2>
     <label for="studentName">學生姓名：</label>
-    <input type="text" id="studentName" name="studentName" required>
+    <select id="studentName" name="studentName" required>
+      <option value="" disabled selected>請選擇學生</option>
+    </select>
 
     <label for="pointsChange">點數變更：</label>
     <input type="number" id="pointsChange" name="pointsChange" required>
@@ -26,16 +39,92 @@
     <div id="message"></div>
   </div>
 
+  <div class="scan-container">
+    <h2>QR Code 掃描更新點數</h2>
+    <label for="scanStudentId">掃描學號：</label>
+    <input type="text" id="scanStudentId" name="scanStudentId" placeholder="掃描後自動填入" readonly>
+    <button onclick="startScan()">開始掃描</button>
+    <div id="scanError"></div>
+    <div id="scanResult" style="display: none;">
+      <h3>學生資訊</h3>
+      <p>學號：<span id="displayScanStudentId"></span></p>
+      <p>學生姓名：<span id="displayScanStudentName"></span></p>
+      <p>總點數：<span id="displayScanTotalPoints"></span></p>
+    </div>
+  </div>
+
+  <div id="updatePointsSection" class="update-container" style="display: none;">
+    <h3>更新點數 (掃描)</h3>
+    <label for="updatePointsChange">點數變更：</label>
+    <input type="number" id="updatePointsChange" name="updatePointsChange" required>
+    <button onclick="updatePointsByScan('add')">增加點數</button>
+    <button onclick="updatePointsByScan('subtract')">扣除點數</button>
+    <div id="updateMessage"></div>
+    <div id="updateError"></div>
+  </div>
+
+  <div class="list-container">
+    <h2>學生列表</h2>
+    <table id="studentListTable">
+      <thead>
+        <tr>
+          <th>學號</th>
+          <th>學生姓名</th>
+          <th>總點數</th>
+        </tr>
+      </thead>
+      <tbody id="studentListBody">
+        <tr><td colspan="3">載入中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="leaderboard-container">
+    <h2>排行榜</h2>
+    <table id="leaderboardTable">
+      <thead>
+        <tr>
+          <th>排名</th>
+          <th>學號</th>
+          <th>學生姓名</th>
+          <th>總點數</th>
+        </tr>
+      </thead>
+      <tbody id="leaderboardBody">
+        <tr><td colspan="4">載入中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <button onclick="updateData()">更新資料</button>
+
   <script>
-    const webAppUrl = 'YOUR_WEB_APP_URL'; // 將這裡替換成你的 Web 應用程式網址
+    const webAppUrl = 'https://script.google.com/macros/s/AKfycbwJTzfDXTohAT14xuCQIPfD9vZvp65xsxcN6EWvrOLVILjMbulqB6Iu52RwDSoTeHk/exec'; // 將這裡替換成你的 Web 應用程式網址
     const messageDiv = document.getElementById('message');
+    const studentListBody = document.getElementById('studentListBody');
+    const leaderboardBody = document.getElementById('leaderboardBody');
+    const studentNameSelect = document.getElementById('studentName');
+
+    // QR Code 掃描相關元素
+    const scanStudentIdInput = document.getElementById('scanStudentId');
+    const scanErrorDiv = document.getElementById('scanError');
+    const scanResultDiv = document.getElementById('scanResult');
+    const displayScanStudentId = document.getElementById('displayScanStudentId');
+    const displayScanStudentName = document.getElementById('displayScanStudentName');
+    const displayScanTotalPoints = document.getElementById('displayScanTotalPoints');
+    const updatePointsSection = document.getElementById('updatePointsSection');
+    const updatePointsChangeInput = document.getElementById('updatePointsChange');
+    const updateMessageDiv = document.getElementById('updateMessage');
+    const updateErrorDiv = document.getElementById('updateError');
+
+    let scanner = null; // 用於儲存掃描器實例
 
     function changePoints(action) {
-      const studentName = document.getElementById('studentName').value;
+      const studentName = studentNameSelect.value;
       const pointsChange = document.getElementById('pointsChange').value;
 
       if (!studentName || !pointsChange) {
-        messageDiv.textContent = '請輸入學生姓名和點數。';
+        messageDiv.textContent = '請選擇學生並輸入點數。';
         return;
       }
 
@@ -54,10 +143,224 @@
       .then(response => response.json())
       .then(data => {
         messageDiv.textContent = data.message;
+        loadStudentList();
+        loadLeaderboard();
+        loadStudentNames();
+        clearScanResult();
+        hideUpdatePointsSection();
       })
       .catch(error => {
         messageDiv.textContent = '發生錯誤：' + error;
       });
+    }
+
+    function loadStudentList() {
+      fetch(webAppUrl + '?action=getStudentList')
+        .then(response => response.json())
+        .then(data => {
+          studentListBody.innerHTML = '';
+          data.forEach(student => {
+            const row = studentListBody.insertRow();
+            const idCell = row.insertCell();
+            const nameCell = row.insertCell();
+            const pointsCell = row.insertCell();
+            idCell.textContent = student['學號'];
+            nameCell.textContent = student['學生姓名'];
+            pointsCell.textContent = student['總點數'];
+          });
+        })
+        .catch(error => {
+          studentListBody.innerHTML = '<tr><td colspan="3">載入學生列表失敗。</td></tr>';
+          console.error('載入學生列表失敗:', error);
+        });
+    }
+
+    function loadLeaderboard() {
+      fetch(webAppUrl + '?action=getLeaderboard')
+        .then(response => response.json())
+        .then(data => {
+          leaderboardBody.innerHTML = '';
+          data.forEach((student, index) => {
+            const row = leaderboardBody.insertRow();
+            const rankCell = row.insertCell();
+            const idCell = row.insertCell();
+            const nameCell = row.insertCell();
+            const pointsCell = row.insertCell();
+            rankCell.textContent = index + 1;
+            idCell.textContent = student['學號'];
+            nameCell.textContent = student['學生姓名'];
+            pointsCell.textContent = student['總點數'];
+          });
+        })
+        .catch(error => {
+          leaderboardBody.innerHTML = '<tr><td colspan="4">載入排行榜失敗。</td></tr>';
+          console.error('載入排行榜失敗:', error);
+        });
+    }
+
+    function loadStudentNames() {
+      fetch(webAppUrl + '?action=getStudentNames')
+        .then(response => response.json())
+        .then(students => {
+          studentNameSelect.innerHTML = '<option value="" disabled selected>請選擇學生</option>';
+          students.forEach(student => {
+            const option = document.createElement('option');
+            option.value = student['學生姓名'];
+            option.textContent = `${student['學號']} - ${student['學生姓名']}`;
+            studentNameSelect.appendChild(option);
+          });
+        })
+        .catch(error => {
+          studentNameSelect.innerHTML = '<option value="" disabled selected>載入學生姓名失敗</option>';
+          console.error('載入學生姓名失敗:', error);
+        });
+    }
+
+    function updateData() {
+      loadStudentList();
+      loadLeaderboard();
+      loadStudentNames();
+      clearScanResult();
+      hideUpdatePointsSection();
+    }
+
+    window.onload = () => {
+      updateData();
+    };
+
+    function startScan() {
+      // 檢查瀏覽器是否支援媒體裝置 API
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        scanErrorDiv.textContent = '您的瀏覽器不支持掃描功能。';
+        scanErrorDiv.style.display = 'block';
+        return;
+      }
+
+      // 引入一個簡單的 QR Code 掃描庫 (例如：qr-scanner)
+      import('https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.min.js')
+        .then(qrScanner => {
+          scanErrorDiv.style.display = 'none';
+          const videoElem = document.createElement('video');
+          document.body.appendChild(videoElem); // 將 video 元素添加到 DOM
+
+          qrScanner.scan(videoElem, result => {
+            scanner.stop(); // 掃描成功後停止掃描
+            document.body.removeChild(videoElem); // 移除 video 元素
+            scanStudentIdInput.value = result;
+            findStudentInfoByScan(result);
+          }, error => {
+            if (error === 'No device found' || error === 'Permission denied') {
+              scanErrorDiv.textContent = '找不到可用的相機或相機權限被拒絕。';
+            } else if (error !== 'Video stream inactive') {
+              scanErrorDiv.textContent = '掃描過程中發生錯誤：' + error;
+            }
+            scanErrorDiv.style.display = 'block';
+            if (scanner) {
+              scanner.stop();
+              document.body.removeChild(videoElem);
+              scanner = null;
+            }
+          });
+          scanner = qrScanner;
+        })
+        .catch(err => {
+          scanErrorDiv.textContent = '載入掃描庫失敗：' + err;
+          scanErrorDiv.style.display = 'block';
+        });
+    }
+
+    function findStudentInfoByScan(studentId) {
+      if (studentId) {
+        scanErrorDiv.style.display = 'none';
+        scanResultDiv.style.display = 'none';
+        updatePointsSection.style.display = 'none';
+
+        fetch(`${webAppUrl}?action=findStudent&studentId=${encodeURIComponent(studentId)}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.error) {
+              scanErrorDiv.textContent = data.error;
+              scanErrorDiv.style.display = 'block';
+              scanResultDiv.style.display = 'none';
+              updatePointsSection.style.display = 'none';
+            } else {
+              displayScanStudentId.textContent = data['學號'];
+              displayScanStudentName.textContent = data['學生姓名'];
+              displayScanTotalPoints.textContent = data['總點數'];
+              scanResultDiv.style.display = 'block';
+              updatePointsSection.style.display = 'block';
+            }
+          })
+          .catch(error => {
+            scanErrorDiv.textContent = '查找學生資訊失敗。';
+            scanErrorDiv.style.display = 'block';
+            scanResultDiv.style.display = 'none';
+            updatePointsSection.style.display = 'none';
+            console.error('查找學生資訊失敗:', error);
+          });
+      } else {
+        scanErrorDiv.textContent = '掃描失敗，請重試。';
+        scanErrorDiv.style.display = 'block';
+        scanResultDiv.style.display = 'none';
+        updatePointsSection.style.display = 'none';
+      }
+    }
+
+    function updatePointsByScan(action) {
+      const studentId = scanStudentIdInput.value;
+      const pointsChange = parseInt(updatePointsChangeInput.value);
+
+      if (!studentId || isNaN(pointsChange)) {
+        updateErrorDiv.textContent = '請掃描學生 QR Code 並輸入點數。';
+        updateErrorDiv.style.display = 'block';
+        return;
+      }
+
+      updateErrorDiv.style.display = 'none';
+      updateMessageDiv.textContent = '更新中...';
+
+      const data = new URLSearchParams();
+      data.append('studentId', studentId);
+      data.append('pointsChange', pointsChange);
+      data.append('action', action);
+
+      fetch(webAppUrl, {
+        method: 'POST',
+        body: data,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        updateMessageDiv.textContent = data.message;
+        updateErrorDiv.style.display = 'none';
+        updatePointsChangeInput.value = ''; // 清空點數輸入框
+        findStudentInfoByScan(studentId); // 重新載入學生資訊
+        loadStudentList();
+        loadLeaderboard();
+      })
+      .catch(error => {
+        updateMessageDiv.textContent = '';
+        updateErrorDiv.textContent = '更新點數失敗：' + error;
+        updateErrorDiv.style.display = 'block';
+      });
+    }
+
+    function clearScanResult() {
+      scanStudentIdInput.value = '';
+      scanErrorDiv.style.display = 'none';
+      scanResultDiv.style.display = 'none';
+      displayScanStudentId.textContent = '';
+      displayScanStudentName.textContent = '';
+      displayScanTotalPoints.textContent = '';
+    }
+
+    function hideUpdatePointsSection() {
+      updatePointsSection.style.display = 'none';
+      updatePointsChangeInput.value = '';
+      updateMessageDiv.textContent = '';
+      updateErrorDiv.style.display = 'none';
     }
   </script>
 </body>
