@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>點數管理</title>
+  <style>
+    body { font-family: sans-serif; }
+    .container { width: 300px; margin: 50px auto; }
+    label { display: block; margin-bottom: 5px; }
+    input[type="text"], input[type="number"] { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+    button { padding: 10px 15px; margin-right: 10px; cursor: pointer; }
+    #message { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>點數管理</h1>
+    <label for="studentName">學生姓名：</label>
+    <input type="text" id="studentName" name="studentName" required>
+
+    <label for="pointsChange">點數變更：</label>
+    <input type="number" id="pointsChange" name="pointsChange" required>
+
+    <button onclick="changePoints('add')">增加點數</button>
+    <button onclick="changePoints('subtract')">扣除點數</button>
+
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const webAppUrl = 'YOUR_WEB_APP_URL'; // 將這裡替換成你的 Web 應用程式網址
+    const messageDiv = document.getElementById('message');
+
+    function changePoints(action) {
+      const studentName = document.getElementById('studentName').value;
+      const pointsChange = document.getElementById('pointsChange').value;
+
+      if (!studentName || !pointsChange) {
+        messageDiv.textContent = '請輸入學生姓名和點數。';
+        return;
+      }
+
+      const data = new URLSearchParams();
+      data.append('studentName', studentName);
+      data.append('pointsChange', pointsChange);
+      data.append('action', action);
+
+      fetch(webAppUrl, {
+        method: 'POST',
+        body: data,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        messageDiv.textContent = data.message;
+      })
+      .catch(error => {
+        messageDiv.textContent = '發生錯誤：' + error;
+      });
+    }
+  </script>
+</body>
+</html>
