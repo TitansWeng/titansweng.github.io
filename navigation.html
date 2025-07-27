@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跟著泰坦去旅行 - 釜山福岡行程</title>
+    
+    <!-- PWA Manifest and Theme Color -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#60a5fa">
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/60a5fa/ffffff?text=Titan">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #F8F7F4;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 1.25rem;
+            top: 0.8rem;
+            bottom: -0.8rem;
+            width: 2px;
+            background-color: #e5e7eb;
+            transform: translateX(-50%);
+        }
+        .timeline-item:last-child::before {
+            display: none;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: 1.25rem;
+            top: 0.8rem;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 9999px;
+            background-color: white;
+            transform: translate(-50%, -50%);
+            transition: border-color 0.3s;
+            z-index: 10;
+        }
+        [data-theme="korea"] .timeline-dot { border: 2px solid #a78bfa; }
+        [data-theme="japan"] .timeline-dot { border: 2px solid #f43f5e; }
+        
+        .nav-link.active-korea {
+            background-image: linear-gradient(to right, #60a5fa, #a78bfa);
+            color: white;
+        }
+        .nav-link.active-japan {
+            background-image: linear-gradient(to right, #f472b6, #fb923c);
+            color: white;
+        }
+        .modal-overlay {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #60a5fa;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        .mini-loader {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #60a5fa;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .map-container {
+            position: relative;
+            height: 100%;
+            width: 100%;
+        }
+        #map {
+             height: 100%;
+             width: 100%;
+             border-radius: 1rem;
+             z-index: 10;
+        }
+        .retry-suggestion {
+            cursor: pointer;
+            text-decoration: underline;
+            color: #60a5fa;
+        }
+        .gradient-text-korea {
+            background-image: linear-gradient(to right, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .gradient-text-japan {
+            background-image: linear-gradient(to right, #ec4899, #f97316);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .flight-status-ontime { color: #22c55e; }
+        .flight-status-delayed { color: #ef4444; }
+        .flight-status-scheduled { color: #3b82f6; }
+        .flight-group-btn.active {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
+            background-color: #eff6ff;
+        }
+        .flight-group-btn-return.active {
+            border-color: #ec4899;
+            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.4);
+            background-color: #fff1f2;
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .leaflet-popup-content {
+            margin: 13px 19px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+        .map-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 400;
+        }
+        .map-control-btn {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            transition: background-color 0.2s;
+        }
+        .map-control-btn:hover {
+            background-color: #f7f7f7;
+        }
+        .timeline-item {
+            transition: transform 0.2s, background-color 0.2s;
+            padding: 8px 0;
+            cursor: pointer;
+        }
+        .timeline-item.highlighted {
+            background-color: #f0f9ff;
+            border-radius: 8px;
+            transform: scale(1.02);
+        }
+        .timeline-item:active {
+            transform: scale(0.98);
+        }
+        .custom-map-icon svg {
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pulsing-icon {
+            animation: pulse 1.5s infinite;
+        }
+        .choice-option {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-white/80 backdrop-blur-lg shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 relative">
+            <div class="text-center">
+                <h1 id="main-title" class="text-2xl md:text-3xl font-bold text-center gradient-text-korea">跟著泰坦去旅行 ‧ 釜山福岡篇</h1>
+                <p class="text-center text-gray-500 mt-1 text-sm md:text-base">跨越海峽的足跡，編織共同的夏日回憶</p>
+            </div>
+            <button id="install-pwa-btn" class="hidden absolute top-1/2 right-4 -translate-y-1/2 bg-blue-500 text-white rounded-full p-2 shadow-lg hover:bg-blue-600 transition-colors" title="新增到手機桌面">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+            </button>
+            <nav id="nav-menu" class="mt-4 overflow-x-auto whitespace-nowrap pb-2">
+                <div class="flex justify-center space-x-2 px-4">
+                    <a href="#day-1" class="nav-link px-3 py-1 text-sm font-medium text-gray-700 rounded-full hover:bg-blue-100 transition-colors">第 1 天</a>
+                    <a href="#day-2" class="nav-link px-3 py-1 text-sm font-medium text-gray-700 rounded-full hover:bg-blue-100 transition-colors">第 2 天</a>
+                    <a href="#day-3" class="nav-link px-3 py-1 text-sm font-medium text-gray-700 rounded-full hover:bg-blue-100 transition-colors">第 3 天</a>
+                    <a href="#day-4" class="nav-link px-3 py-1 text-sm font-medium text-gray-700 rounded-full hover:bg-rose-100 transition-colors">第 4 天</a>
+                    <a href="#day-5" class="nav-link px-3 py-1 text-sm font-medium text-gray-700 rounded-full hover:bg-rose-100 transition-colors">第 5 天</a>
+                    <a href="#day-6" class="nav-link px-3 py-1 text-sm font-medium text-gray-700 rounded-full hover:bg-rose-100 transition-colors">第 6 天</a>
+                    <a href="#day-7" class="nav-link px-3 py-1 text-sm font-medium text-gray-700 rounded-full hover:bg-rose-100 transition-colors">第 7 天</a>
+                    <a href="#day-8" class="nav-link px-3 py-1 text-sm font-medium text-gray-700 rounded-full hover:bg-rose-100 transition-colors">第 8 天</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-6 lg:p-8">
+        <div class="lg:grid lg:grid-cols-12 lg:gap-8">
+            <div class="lg:col-span-7 space-y-8">
+
+            <!-- Day 1 -->
+            <section id="day-1" class="day-section bg-white p-6 rounded-2xl shadow-lg" data-theme="korea" data-city="busan" data-date="2025-08-05">
+                <div class="space-y-4 mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 border-b-2 border-blue-200 pb-2">✈️ 去程航班資訊 (點選查看對應行程)</h3>
+                    <div class="flex flex-col gap-3">
+                        <button id="btn-group1" class="flight-group-btn flex-1 p-4 rounded-lg text-left transition-all duration-300 border-2 border-transparent">
+                            <div class="flight-info" data-flight-id="7C6154">
+                                <p class="font-bold text-blue-800">第一組 (13人): 濟州航空 7C6154</p>
+                                <p class="text-gray-600 mt-1">起飛: 02:50 (TPE) → 抵達: 06:20 (PUS)</p>
+                                <div class="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-500">
+                                    <span id="flight-7C6154-terminal">航廈: 載入中...</span>
+                                    <span id="flight-7C6154-gate">登機門: 載入中...</span>
+                                    <span id="flight-7C6154-status" class="font-bold">狀態: 載入中...</span>
+                                </div>
+                            </div>
+                        </button>
+                        <button id="btn-group2" class="flight-group-btn flex-1 p-4 rounded-lg text-left transition-all duration-300 border-2 border-transparent">
+                            <div class="flight-info" data-flight-id="CI188">
+                                <p class="font-bold text-blue-800">第二組 (2人): 中華航空 CI188</p>
+                                <p class="text-gray-600 mt-1">起飛: 07:55 (TPE) → 抵達: 11:15 (PUS)</p>
+                                <div class="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-500">
+                                    <span id="flight-CI188-terminal">航廈: 載入中...</span>
+                                    <span id="flight-CI188-gate">登機門: 載入中...</span>
+                                    <span id="flight-CI188-status" class="font-bold">狀態: 載入中...</span>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+                <h2 class="text-2xl font-bold text-blue-700">【第1天】8月5日 (星期一)</h2>
+                <p class="mt-1 text-gray-600">分頭抵達 & 會合啟用通行證</p>
+                <div class="mt-4 flex flex-wrap gap-4 text-sm">
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🇰🇷 韓國釜山</span>
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🛌 NEWCZ CENTUM 飯店</span>
+                </div>
+                <div class="weather-container mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex flex-wrap items-center gap-x-6 gap-y-2">
+                    <div>
+                        <p class="weather-type text-sm font-bold text-blue-800">天氣資訊 (釜山)</p>
+                        <p class="weather-forecast text-lg font-semibold">正在載入...</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-blue-800">AI 動態穿著建議</p>
+                        <p class="clothing-suggestion text-base flex items-center gap-2">
+                            <span class="loader mini-loader"></span> 正在產生建議...
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button class="ai-tip-btn bg-gradient-to-r from-blue-400 to-purple-500 text-white font-bold py-2 px-4 rounded-full shadow-lg hover:scale-105 transition-transform" data-prompt="為一個15人的台灣家庭團體（有長輩），提供關於第一天抵達釜山行程的3個實用旅遊提示。行程重點包括：清晨和中午分批抵達機場、在Spa Land會合休息、下午參觀Arte Museum，晚上搭乘Yacht Holic夜間遊艇。提示應著重於團體協調、體力分配和夜間活動的建議。">
+                        ✨ AI 提供今日旅遊提示
+                    </button>
+                </div>
+
+                <!-- 行程時間軸 -->
+                <div id="timeline-group1" class="mt-6 relative">
+                    <div class="timeline-item relative pl-10" data-location-id="day1-1">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">06:20</p>
+                        <h3 class="font-semibold mt-1">第一組抵達 & 前往飯店</h3>
+                        <p class="text-sm text-gray-500 mt-1">🛬 搭乘濟州航空的團員抵達釜山金海機場(PUS)。<br>🚕 搭乘計程車前往Centum City區域的飯店寄放行李。</p>
+                    </div>
+                     <div class="timeline-item relative pl-10" data-location-id="day1-2">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">08:00 - 11:30</p>
+                        <h3 class="font-semibold mt-1">Spa Land 汗蒸幕 (等待會合)</h3>
+                        <p class="text-sm text-gray-500 mt-1">🧖‍♀️ 第一組團員可先至飯店對面的新世界百貨 <strong class="font-semibold text-gray-800">Spa Land 汗蒸幕</strong> 放鬆休息，洗去搭乘紅眼航班的疲憊，等待第二組團員抵達。<br>💰 <span class="font-semibold text-orange-500">此為自費項目</span></p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day1-2">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">12:00</p>
+                        <h3 class="font-semibold mt-1">全員會合 & 午餐</h3>
+                        <p class="text-sm text-gray-500 mt-1">🤝 第二組團員抵達後，全員於新世界百貨會合。午餐可在館內解決。<br>🎟️ <span class="font-semibold text-green-600">釜山PASS ✔️ Spa Land 免費</span></p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day1-3">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">15:30 - 17:30</p>
+                        <h3 class="font-semibold mt-1">Arte Museum 沉浸式藝術館</h3>
+                        <p class="text-sm text-gray-500 mt-1">🎨 【通行證第一站】體驗光影交織的沉浸式數位藝術展覽。<br>🎟️ <span class="font-semibold text-green-600">釜山PASS ✔️ 免費</span></p>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">18:00 - 19:30</p>
+                        <h3 class="font-semibold mt-1">晚餐時間</h3>
+                        <p class="text-sm text-gray-500 mt-1">🍽️ 在海雲台或Centum City附近享用晚餐。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day1-4">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">20:30</p>
+                        <h3 class="font-semibold mt-1">Yacht Holic 夜間遊艇</h3>
+                        <p class="text-sm text-gray-500 mt-1">🛥️ 【通行證第二站】搭乘遊艇欣賞釜山絕美夜景，包含廣安大橋。<br>🎟️ <span class="font-semibold text-green-600">釜山PASS ✔️ 免費</span><br>⚠️ <span class="font-semibold text-red-500">務必提早預約！</span></p>
+                    </div>
+                </div>
+
+                <div id="timeline-group2" class="mt-6 relative hidden">
+                     <div class="timeline-item relative pl-10" data-location-id="day1-1">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">11:15</p>
+                        <h3 class="font-semibold mt-1">第二組抵達</h3>
+                        <p class="text-sm text-gray-500 mt-1">🛬 搭乘華航的團員抵達釜山金海機場(PUS)。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day1-2">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">12:00</p>
+                        <h3 class="font-semibold mt-1">全員會合 & 午餐</h3>
+                        <p class="text-sm text-gray-500 mt-1">🤝 全體團員於新世界百貨會合。午餐可在館內解決，或直接進入 <strong class="font-semibold text-gray-800">Spa Land 汗蒸幕</strong> 休息用餐。<br>🎟️ <span class="font-semibold text-green-600">釜山PASS ✔️ Spa Land 免費</span></p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day1-3">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">15:30 - 17:30</p>
+                        <h3 class="font-semibold mt-1">Arte Museum 沉浸式藝術館</h3>
+                        <p class="text-sm text-gray-500 mt-1">🎨 【通行證第一站】體驗光影交織的沉浸式數位藝術展覽。<br>🎟️ <span class="font-semibold text-green-600">釜山PASS ✔️ 免費</span></p>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">18:00 - 19:30</p>
+                        <h3 class="font-semibold mt-1">晚餐時間</h3>
+                        <p class="text-sm text-gray-500 mt-1">🍽️ 在海雲台或Centum City附近享用晚餐。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day1-4">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">20:30</p>
+                        <h3 class="font-semibold mt-1">Yacht Holic 夜間遊艇</h3>
+                        <p class="text-sm text-gray-500 mt-1">🛥️ 【通行證第二站】搭乘遊艇欣賞釜山絕美夜景，包含廣安大橋。<br>🎟️ <span class="font-semibold text-green-600">釜山PASS ✔️ 免費</span><br>⚠️ <span class="font-semibold text-red-500">務必提早預約！</span></p>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
+                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                        <p><strong class="font-semibold">韓文:</strong> 뉴 씨엘 드 씨엘 호텔 센텀</p>
+                        <p><strong class="font-semibold">英文:</strong> NEWCZ CENTUM Hotel</p>
+                        <p><strong class="font-semibold">電話:</strong> +82 51-750-1100</p>
+                        <p><strong class="font-semibold">地址:</strong> 37 Centum 1-ro, Haeundae-gu, Busan</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="day-2" class="day-section bg-white p-6 rounded-2xl shadow-lg" data-theme="korea" data-city="busan" data-date="2025-08-06">
+                <h2 class="text-2xl font-bold text-blue-700">【第2天】8月6日 (星期二)</h2>
+                <p class="mt-1 text-gray-600">機張動感樂園 & 購物日</p>
+                <div class="mt-4 flex flex-wrap gap-4 text-sm">
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🇰🇷 韓國釜山</span>
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🛌 NEWCZ CENTUM 飯店</span>
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🚕 計程車</span>
+                </div>
+                <div class="weather-container mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex flex-wrap items-center gap-x-6 gap-y-2">
+                     <div>
+                        <p class="weather-type text-sm font-bold text-blue-800">天氣資訊 (釜山)</p>
+                        <p class="weather-forecast text-lg font-semibold">正在載入...</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-blue-800">AI 動態穿著建議</p>
+                        <p class="clothing-suggestion text-base flex items-center gap-2">
+                            <span class="loader mini-loader"></span> 正在產生建議...
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button class="ai-tip-btn bg-gradient-to-r from-blue-400 to-purple-500 text-white font-bold py-2 px-4 rounded-full shadow-lg hover:scale-105 transition-transform" data-prompt="為一個15人的台灣家庭團體（有長輩），提供關於在釜山機張地區一日遊的3個實用旅遊提示。行程重點包括：釜山樂天世界、Skyline Luge卡丁車、Brick Campus樂高展，以及傍晚回市區百貨公司購物。提示應著重於大型樂園的團體行動策略、體力分配和餐飲建議。">
+                        ✨ AI 提供今日旅遊提示
+                    </button>
+                </div>
+
+                <div class="mt-6 relative">
+                     <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">本日集合建議</p>
+                        <h3 class="font-semibold mt-1">09:30 @ 飯店大廳</h3>
+                        <p class="text-sm text-gray-500 mt-1">準備搭計程車出發前往機張。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day2-1">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">10:00 - 14:30</p>
+                        <h3 class="font-semibold mt-1">釜山樂天世界冒險樂園</h3>
+                        <p class="text-sm text-gray-500 mt-1">🎟️ <span class="font-semibold text-green-600">釜山PASS ✔️ 免費</span><br>🎢 【通行證第三站】釜山最熱門樂園！建議先玩戶外再玩室內。午餐可在園區內美食街解決，方便大家選擇。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day2-2">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">15:00 - 16:30</p>
+                        <h3 class="font-semibold mt-1">Skyline Luge 卡丁車</h3>
+                        <p class="text-sm text-gray-500 mt-1">🎟️ <span class="font-semibold text-green-600">釜山PASS ✔️ 免費</span><br>🏎️ 【通行證第四站】就在樂天世界旁邊。體驗刺激好玩的斜坡滑車。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day2-3">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">17:00 - 18:30</p>
+                        <h3 class="font-semibold mt-1">Brick Campus 樂高積木展</h3>
+                        <p class="text-sm text-gray-500 mt-1">🎟️ <span class="font-semibold text-green-600">釜山PASS ✔️ 免費</span><br>🧱 【通行證第五站】因Arte Museum已移至前一天，今天可以悠閒地參觀樂高展。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">傍晚</p>
+                        <h3 class="font-semibold mt-1">返回市區 & 晚餐 & 購物時間</h3>
+                        <p class="text-sm text-gray-500 mt-1">🛍️ 搭乘計程車返回飯店。晚餐後，可以前往飯店對面的新世界百貨或樂天百貨盡情購物。<br>🍽️ <strong class="font-semibold">晚餐推薦</strong>：海雲台「<strong class="font-semibold text-gray-800">伍班長烤肉</strong>」或「<strong class="font-semibold text-gray-800">味贊王鹽烤肉</strong>」，有專人代烤服務，適合團體。<strong class="font-semibold text-red-500">務必提早預約！</strong></p>
+                    </div>
+                </div>
+                 <div class="mt-6 pt-4 border-t border-gray-200">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
+                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                        <p><strong class="font-semibold">韓文:</strong> 뉴 씨엘 드 씨엘 호텔 센텀</p>
+                        <p><strong class="font-semibold">英文:</strong> NEWCZ CENTUM Hotel</p>
+                        <p><strong class="font-semibold">電話:</strong> +82 51-750-1100</p>
+                        <p><strong class="font-semibold">地址:</strong> 37 Centum 1-ro, Haeundae-gu, Busan</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="day-3" class="day-section bg-white p-6 rounded-2xl shadow-lg" data-theme="korea" data-city="busan" data-date="2025-08-07">
+                <h2 class="text-2xl font-bold text-blue-700">【第3天】8月7日 (星期三)</h2>
+                <p class="mt-1 text-gray-600">分頭行動 & 前往日本</p>
+                <div class="mt-4 flex flex-wrap gap-4 text-sm">
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🇰🇷 韓國釜山</span>
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🚢 山茶花號</span>
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🚕 計程車</span>
+                </div>
+                <div class="weather-container mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex flex-wrap items-center gap-x-6 gap-y-2">
+                     <div>
+                        <p class="weather-type text-sm font-bold text-blue-800">天氣資訊 (釜山)</p>
+                        <p class="weather-forecast text-lg font-semibold">正在載入...</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-blue-800">AI 動態穿著建議</p>
+                        <p class="clothing-suggestion text-base flex items-center gap-2">
+                            <span class="loader mini-loader"></span> 正在產生建議...
+                        </p>
+                    </div>
+                </div>
+                 <div class="mt-4">
+                    <button class="ai-tip-btn bg-gradient-to-r from-blue-400 to-purple-500 text-white font-bold py-2 px-4 rounded-full shadow-lg hover:scale-105 transition-transform" data-prompt="為一個15人的台灣家庭團體（有長輩），提供關於在釜山最後一天的3個實用旅遊提示。上午行程為三選一：海雲台海岸列車、甘川洞文化村、或Spa Land汗蒸幕。下午需採買食物並前往釜山港搭乘過夜渡輪前往日本。提示應著重於各選項的體力考量、時間管理以及搭乘過夜渡輪的準備建議。">
+                        ✨ AI 提供今日旅遊提示
+                    </button>
+                </div>
+
+                <div class="mt-6 relative">
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">本日集合建議</p>
+                        <h3 class="font-semibold mt-1">12:30 @ 飯店大廳</h3>
+                        <p class="text-sm text-gray-500 mt-1">上午分頭行動後，在此集合一同午餐或採買。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">上午</p>
+                        <h3 class="font-semibold mt-1">飯店Check-out & 寄放行李</h3>
+                        <p class="text-sm text-gray-500 mt-1">🛄 先辦理退房，將所有行李寄放在飯店櫃台。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">10:00 - 12:00</p>
+                        <h3 class="font-semibold mt-1">上午行程【三選一】</h3>
+                        <div class="mt-2 space-y-4">
+                            <div class="choice-option border-l-4 border-blue-300 pl-4 py-2 bg-blue-50 rounded-r-lg" data-route-id="A">
+                                <h4 class="font-bold">A. <strong class="font-semibold text-gray-800">海雲台海岸列車</strong></h4>
+                                <p class="text-sm text-gray-600">🎟️ <span class="font-semibold text-green-600">釜山PASS ✔️ 免費</span><br>🌊 悠閒看海組：搭計程車到「尾浦站」，憑證搭乘海岸列車到「青沙浦」散步拍照。離飯店近，輕鬆愜意。</p>
+                            </div>
+                            <div class="choice-option border-l-4 border-amber-300 pl-4 py-2 bg-amber-50 rounded-r-lg" data-route-id="B">
+                                <h4 class="font-bold">B. <strong class="font-semibold text-gray-800">甘川洞文化村</strong></h4>
+                                <p class="text-sm text-gray-600">🎨 經典打卡組：搭計程車前往(約40-50分)。參觀彩色山城，與小王子合照。<br>⚠️ <span class="font-semibold text-red-500">注意：需大量步行和爬坡。</span></p>
+                            </div>
+                            <div class="choice-option border-l-4 border-teal-300 pl-4 py-2 bg-teal-50 rounded-r-lg" data-route-id="C">
+                                <h4 class="font-bold">C. <strong class="font-semibold text-gray-800">Spa Land 汗蒸幕</strong></h4>
+                                <p class="text-sm text-gray-600">🎟️ <span class="font-semibold text-green-600">釜山PASS ✔️ 免費</span><br>🧖‍♀️ 極致放鬆組：想在搭船前徹底放鬆的團員，可以再次前往飯店對面的Spa Land。這是登船前消除疲勞的最佳選擇。</p>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">12:30 - 15:30</p>
+                        <h3 class="font-semibold mt-1">午餐 & 最後採買(船上點心)</h3>
+                        <p class="text-sm text-gray-500 mt-1">🍗 集合後在Centum City用餐，並可到百貨公司地下美食街買炸雞、飯捲等方便攜帶的食物當晚餐。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">15:30</p>
+                        <h3 class="font-semibold mt-1">領取行李，前往釜山港</h3>
+                        <p class="text-sm text-gray-500 mt-1">🚕 返回飯店領取所有行李，搭乘計程車出發前往釜山港。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day3-3">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-blue-600">16:30 - 18:30</p>
+                        <h3 class="font-semibold mt-1">辦理登船手續</h3>
+                        <p class="text-sm text-gray-500 mt-1">🚢 根據船票資訊，此為官方報到時間。<br>⚠️ <span class="font-semibold text-red-500">建議最晚17:00前抵達港口</span>，以利15人團體充裕地辦理報到與出境手續。</p>
+                    </div>
+                </div>
+                 <div class="mt-6 pt-4 border-t border-gray-200">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
+                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                        <p><strong class="font-semibold">船名:</strong> 山茶花號 (Camellia Line)</p>
+                        <p><strong class="font-semibold">住宿:</strong> 船上艙房</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="day-4" class="day-section bg-white p-6 rounded-2xl shadow-lg" data-theme="japan" data-city="fukuoka" data-date="2025-08-08">
+                <h2 class="text-2xl font-bold text-rose-700">【第4天】8月8日 (星期四)</h2>
+                <p class="mt-1 text-gray-600">抵達九州 & 關門海峽一日遊</p>
+                <div class="mt-4 flex flex-wrap gap-4 text-sm">
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🇯🇵 日本北九州</span>
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🛌 Quintessa Hotel Kokura</span>
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🚆 大眾運輸</span>
+                </div>
+                <div class="weather-container mt-4 p-4 bg-rose-50 border border-rose-200 rounded-lg flex flex-wrap items-center gap-x-6 gap-y-2">
+                    <div>
+                        <p class="weather-type text-sm font-bold text-rose-800">天氣資訊 (北九州)</p>
+                        <p class="weather-forecast text-lg font-semibold">正在載入...</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-rose-800">AI 動態穿著建議</p>
+                        <p class="clothing-suggestion text-base flex items-center gap-2">
+                            <span class="loader mini-loader"></span> 正在產生建議...
+                        </p>
+                    </div>
+                </div>
+                 <div class="mt-4">
+                    <button class="ai-tip-btn bg-gradient-to-r from-rose-400 to-orange-500 text-white font-bold py-2 px-4 rounded-full shadow-lg hover:scale-105 transition-transform" data-prompt="為一個15人的台灣家庭團體（有長輩），提供關於在日本關門海峽一日遊的3個實用旅遊提示。行程重點包括：從博多港搭乘大眾運輸至小倉寄放行李，再搭火車至門司港，租借腳踏車穿越海底隧道至下關，參觀唐戶市場及春帆樓。提示應著重於大眾運輸的團體票務、腳踏車租借和體力分配建議。">
+                        ✨ AI 提供今日旅遊提示
+                    </button>
+                </div>
+                <div class="mt-6 relative">
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">本日集合建議</p>
+                        <h3 class="font-semibold mt-1">10:30 @ 小倉飯店大廳</h3>
+                        <p class="text-sm text-gray-500 mt-1">寄放完行李後，在此集合準備搭火車前往門司港。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day4-1">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">07:30 - 10:00</p>
+                        <h3 class="font-semibold mt-1">抵達福岡 & 前往小倉寄放行李</h3>
+                        <p class="text-sm text-gray-500 mt-1">🛂 辦理入境手續後，從博多港搭乘巴士或計程車至「博多車站」，再轉乘JR至「小倉車站」，至飯店寄放行李。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day4-3">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">10:30 - 11:00</p>
+                        <h3 class="font-semibold mt-1">前往門司港</h3>
+                        <p class="text-sm text-gray-500 mt-1">🚆 從「小倉車站」搭乘JR鹿兒島本線至「門司港車站」，車程約15分鐘。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day4-4">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">11:00 - 13:30</p>
+                        <h3 class="font-semibold mt-1">租單車、越海峽、吃午餐</h3>
+                        <p class="text-sm text-gray-500 mt-1">🚲 在「JOYiNT單車出租店」租車，穿越關門海底人行隧道至下關，並在<strong class="font-semibold text-gray-800">唐戶市場</strong>享用海鮮大餐。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">13:30 - 16:30</p>
+                        <h3 class="font-semibold mt-1">下關歷史巡禮</h3>
+                        <p class="text-sm text-gray-500 mt-1">🏯 騎車或步行參觀<strong class="font-semibold text-gray-800">春帆樓</strong> (馬關條約簽訂地)及<strong class="font-semibold text-gray-800">赤間神宮</strong>。</p>
+                    </div>
+                     <div class="timeline-item relative pl-10" data-location-id="day4-3">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">16:30 - 18:00</p>
+                        <h3 class="font-semibold mt-1">返回門司港 & 還車</h3>
+                        <p class="text-sm text-gray-500 mt-1">🌇 騎車穿越海底隧道返回門司港，歸還腳踏車，並可稍作停留逛逛懷舊區。</p>
+                    </div>
+                     <div class="timeline-item relative pl-10" data-location-id="day4-2">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">18:00 之後</p>
+                        <h3 class="font-semibold mt-1">返回小倉 & 飯店入住 & 晚餐</h3>
+                        <p class="text-sm text-gray-500 mt-1">🚆 從「門司港車站」搭乘JR返回「小倉車站」。<br>🍽️ <strong class="font-semibold">晚餐推薦</strong>：北九州最有名的「<strong class="font-semibold text-gray-800">資さんうどん (Sukesan Udon)</strong>」，餐點多樣，座位也多。</p>
+                    </div>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
+                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                        <p><strong class="font-semibold">日文:</strong> クインテッサホテル小倉 Comic & Books</p>
+                        <p><strong class="font-semibold">英文:</strong> Quintessa Hotel Kokura Comic & Books</p>
+                        <p><strong class="font-semibold">電話:</strong> +81 93-513-5050</p>
+                        <p><strong class="font-semibold">地址:</strong> 2 Chome-5-13 Kyomachi, Kokurakita Ward, Kitakyushu, Fukuoka 802-0002</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="day-5" class="day-section bg-white p-6 rounded-2xl shadow-lg" data-theme="japan" data-city="fukuoka" data-date="2025-08-09">
+                <h2 class="text-2xl font-bold text-rose-700">【第5天】8月9日 (星期五)</h2>
+                <p class="mt-1 text-gray-600">溫泉鄉一日遊 (湯布院 & 別府)</p>
+                <div class="mt-4 flex flex-wrap gap-4 text-sm">
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🇯🇵 日本大分</span>
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🛌 Quintessa Hotel Kokura</span>
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🚗 租車自駕</span>
+                </div>
+                <div class="weather-container mt-4 p-4 bg-rose-50 border border-rose-200 rounded-lg flex flex-wrap items-center gap-x-6 gap-y-2">
+                    <div>
+                        <p class="weather-type text-sm font-bold text-rose-800">天氣資訊 (大分山區)</p>
+                        <p class="weather-forecast text-lg font-semibold">正在載入...</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-rose-800">AI 動態穿著建議</p>
+                        <p class="clothing-suggestion text-base flex items-center gap-2">
+                            <span class="loader mini-loader"></span> 正在產生建議...
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button class="ai-tip-btn bg-gradient-to-r from-rose-400 to-orange-500 text-white font-bold py-2 px-4 rounded-full shadow-lg hover:scale-105 transition-transform" data-prompt="為一個15人的台灣家庭團體（有長輩），提供關於在日本大分縣自駕一日遊的3個實用旅遊提示。行程重點包括：從北九州小倉租車出發，遊覽湯布院（湯之坪街道、金鱗湖）和別府（海地獄）。提示應著重於多車自駕的停車問題、適合大團體的餐飲選擇，以及溫泉區的輕鬆遊覽方式。">
+                        ✨ AI 提供今日旅遊提示
+                    </button>
+                </div>
+                 <div class="mt-6 relative">
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">本日集合建議</p>
+                        <h3 class="font-semibold mt-1">09:00 @ 飯店大廳</h3>
+                        <p class="text-sm text-gray-500 mt-1">準備出發前往租車公司取車。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">09:30 - 11:00</p>
+                        <h3 class="font-semibold mt-1">租車 & 前往湯布院</h3>
+                        <p class="text-sm text-gray-500 mt-1">🚗 前往小倉車站附近辦理取車手續 (2台8人座車)。之後開車約1.5小時抵達湯布院。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day5-1">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">11:00 - 14:00</p>
+                        <h3 class="font-semibold mt-1">湯布院漫步 & 午餐</h3>
+                        <p class="text-sm text-gray-500 mt-1">🏞️ 逛湯之坪街道，欣賞金鱗湖美景。<br>🍽️ <strong class="font-semibold">午餐推薦</strong>：「<strong class="font-semibold text-gray-800">由布まぶし心</strong>」，主打豐後牛釜飯三吃，建議提早派人去登記候位。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day5-2">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">14:00 - 16:00</p>
+                        <h3 class="font-semibold mt-1">前往別府 & 地獄巡禮</h3>
+                        <p class="text-sm text-gray-500 mt-1">♨️ 從湯布院駕車約30-40分鐘抵達別府。建議可參觀最具代表性的「<strong class="font-semibold text-gray-800">海地獄</strong>」。</p>
+                    </div>
+                     <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">16:00 - 18:00</p>
+                        <h3 class="font-semibold mt-1">駕車返回小倉</h3>
+                        <p class="text-sm text-gray-500 mt-1">🛣️ 從別府開車返回小倉約需1.5小時。<br>🍽️ <strong class="font-semibold">晚餐推薦</strong>：小倉特色美食「<strong class="font-semibold text-gray-800">小倉鐵鍋餃子</strong>」，氣氛熱鬧。</p>
+                    </div>
+                </div>
+                 <div class="mt-6 pt-4 border-t border-gray-200">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
+                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                        <p><strong class="font-semibold">日文:</strong> クインテッサホテル小倉 Comic & Books</p>
+                        <p><strong class="font-semibold">英文:</strong> Quintessa Hotel Kokura Comic & Books</p>
+                        <p><strong class="font-semibold">電話:</strong> +81 93-513-5050</p>
+                        <p><strong class="font-semibold">地址:</strong> 2 Chome-5-13 Kyomachi, Kokurakita Ward, Kitakyushu, Fukuoka 802-0002</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="day-6" class="day-section bg-white p-6 rounded-2xl shadow-lg" data-theme="japan" data-city="fukuoka" data-date="2025-08-10">
+                <h2 class="text-2xl font-bold text-rose-700">【第6天】8月10日 (星期六)</h2>
+                <p class="mt-1 text-gray-600">太宰府 & 下午自由選</p>
+                <div class="mt-4 flex flex-wrap gap-4 text-sm">
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🇯🇵 日本福岡</span>
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🛌 Cross Life Hakata Tenjin</span>
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🚗 租車自駕</span>
+                </div>
+                <div class="weather-container mt-4 p-4 bg-rose-50 border border-rose-200 rounded-lg flex flex-wrap items-center gap-x-6 gap-y-2">
+                    <div>
+                        <p class="weather-type text-sm font-bold text-rose-800">天氣資訊 (福岡)</p>
+                        <p class="weather-forecast text-lg font-semibold">正在載入...</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-rose-800">AI 動態穿著建議</p>
+                        <p class="clothing-suggestion text-base flex items-center gap-2">
+                            <span class="loader mini-loader"></span> 正在產生建議...
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button class="ai-tip-btn bg-gradient-to-r from-rose-400 to-orange-500 text-white font-bold py-2 px-4 rounded-full shadow-lg hover:scale-105 transition-transform" data-prompt="為一個15人的台灣家庭團體（有長輩），提供關於在日本福岡地區自駕一日遊的3個實用旅遊提示。行程重點包括：從北九州小倉退房並載著行李出發，參觀太宰府，下午在糸島海岸和鳥栖Outlet之間二選一，晚上入住福岡天神並參觀福岡塔。提示應著重於行李裝載、行程選擇的建議，以及晚上市區開車的注意事項。">
+                        ✨ AI 提供今日旅遊提示
+                    </button>
+                </div>
+                <div class="mt-6 relative">
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">本日集合建議</p>
+                        <h3 class="font-semibold mt-1">09:30 @ 小倉飯店大廳</h3>
+                        <p class="text-sm text-gray-500 mt-1">辦理退房，並將所有行李裝上車。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day6-1">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">10:00 - 11:30</p>
+                        <h3 class="font-semibold mt-1">前往太宰府</h3>
+                        <p class="text-sm text-gray-500 mt-1">🚗 開車約1-1.5小時抵達太宰府天滿宮。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day6-1">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">11:30 - 13:30</p>
+                        <h3 class="font-semibold mt-1">太宰府參拜 & 午餐</h3>
+                        <p class="text-sm text-gray-500 mt-1">🙏 參拜學問之神，逛表參道商店街，品嚐名產「<strong class="font-semibold text-gray-800">梅枝餅</strong>」。<br>🍽️ <strong class="font-semibold">午餐推薦</strong>：梅枝餅名店「<strong class="font-semibold text-gray-800">かさの家</strong>」附設的餐廳，提供日式定食，非常方便。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">13:30 之後</p>
+                        <h3 class="font-semibold mt-1">下午行程【二選一】</h3>
+                        <div class="mt-2 space-y-4">
+                            <div class="choice-option border-l-4 border-sky-300 pl-4 py-2 bg-sky-50 rounded-r-lg" data-route-id="A">
+                                <h4 class="font-bold">A. 前往<strong class="font-semibold text-gray-800">糸島</strong> (海岸兜風路線)</h4>
+                                <p class="text-sm text-gray-600">🏖️ 喜歡風景拍照：開車約1小時前往糸島，探訪櫻井二見浦夫婦岩的白色鳥居，在海邊咖啡廳享受悠閒時光。</p>
+                            </div>
+                            <div class="choice-option border-l-4 border-purple-300 pl-4 py-2 bg-purple-50 rounded-r-lg" data-route-id="B">
+                                <h4 class="font-bold">B. 前往<strong class="font-semibold text-gray-800">鳥栖Outlet</strong> (購物路線)</h4>
+                                <p class="text-sm text-gray-600">🛍️ 喜歡逛街購物：開車約20分鐘前往九州最大的 Outlet，讓大家盡情採購。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="timeline-item relative pl-10" data-location-id="day6-4">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">17:00 左右</p>
+                        <h3 class="font-semibold mt-1">前往福岡天神 & 飯店入住</h3>
+                        <p class="text-sm text-gray-500 mt-1">🏨 從糸島(約50分)或鳥栖(約40分)開車前往天神新飯店，辦理入住並卸下行李。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">19:00 之後</p>
+                        <h3 class="font-semibold mt-1">福岡塔夜景 & 晚餐</h3>
+                        <p class="text-sm text-gray-500 mt-1">🗼 可開車前往<strong class="font-semibold text-gray-800">福岡塔</strong>欣賞市區夜景。<br>🍽️ <strong class="font-semibold">晚餐推薦</strong>：福岡必吃「<strong class="font-semibold text-gray-800">牛腸鍋</strong>」，可考慮「<strong class="font-semibold text-gray-800">博多もつ鍋 おおやま (大山)</strong>」或「<strong class="font-semibold text-gray-800">もつ鍋 楽天地 (樂天地)</strong>」，<strong class="font-semibold text-red-500">務必提早預約！</strong></p>
+                    </div>
+                </div>
+                 <div class="mt-6 pt-4 border-t border-gray-200">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
+                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                        <p><strong class="font-semibold">日文:</strong> クロスライフ博多天神</p>
+                        <p><strong class="font-semibold">英文:</strong> Cross Life Hakata Tenjin</p>
+                        <p><strong class="font-semibold">電話:</strong> +81 92-733-0100</p>
+                        <p><strong class="font-semibold">地址:</strong> 3 Chome-4-14 Haruyoshi, Chuo Ward, Fukuoka, 810-0003</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="day-7" class="day-section bg-white p-6 rounded-2xl shadow-lg" data-theme="japan" data-city="fukuoka" data-date="2025-08-11">
+                <h2 class="text-2xl font-bold text-rose-700">【第7天】8月11日 (星期日)</h2>
+                <p class="mt-1 text-gray-600">還車 & 市區巡禮</p>
+                <div class="mt-4 flex flex-wrap gap-4 text-sm">
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🇯🇵 日本福岡</span>
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🛌 Cross Life Hakata Tenjin</span>
+                    <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🚶‍♂️ 大眾運輸</span>
+                </div>
+                <div class="weather-container mt-4 p-4 bg-rose-50 border border-rose-200 rounded-lg flex flex-wrap items-center gap-x-6 gap-y-2">
+                    <div>
+                        <p class="weather-type text-sm font-bold text-rose-800">天氣資訊 (福岡)</p>
+                        <p class="weather-forecast text-lg font-semibold">正在載入...</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-rose-800">AI 動態穿著建議</p>
+                        <p class="clothing-suggestion text-base flex items-center gap-2">
+                            <span class="loader mini-loader"></span> 正在產生建議...
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button class="ai-tip-btn bg-gradient-to-r from-rose-400 to-orange-500 text-white font-bold py-2 px-4 rounded-full shadow-lg hover:scale-105 transition-transform" data-prompt="為一個15人的台灣家庭團體（有長輩），提供關於在福岡市區一日遊的3個實用旅遊提示。行程重點包括：上午還車，然後使用大眾運輸參觀櫛田神社、川端通商店街，下午在博多運河城或大濠公園之間選擇，傍晚進行最後採買。提示應著重於還車後的交通銜接、適合大團體的午餐地點，以及購物效率。">
+                        ✨ AI 提供今日旅遊提示
+                    </button>
+                </div>
+                <div class="mt-6 relative">
+                     <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">本日集合建議</p>
+                        <h3 class="font-semibold mt-1">09:30 @ 飯店大廳</h3>
+                        <p class="text-sm text-gray-500 mt-1">準備出發還車，開啟今日行程。</p>
+                    </div>
+                     <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">10:00 - 10:30</p>
+                        <h3 class="font-semibold mt-1">還車</h3>
+                        <p class="text-sm text-gray-500 mt-1">🔑 早餐後，將車開到天神附近的租車公司據點歸還。</p>
+                    </div>
+                     <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">10:30 - 18:30</p>
+                        <h3 class="font-semibold mt-1">福岡市區八小時自由行【五選一】</h3>
+                        <div class="mt-2 space-y-4">
+                            <div class="choice-option border-l-4 border-sky-300 pl-4 py-2 bg-sky-50 rounded-r-lg" data-route-id="A">
+                                <h4 class="font-bold">A. 購物血拚組</h4>
+                                <p class="text-sm text-gray-600">🛍️ 專攻<strong class="font-semibold text-gray-800">博多運河城</strong>與<strong class="font-semibold text-gray-800">天神地下街</strong>，滿足所有購物需求。</p>
+                            </div>
+                            <div class="choice-option border-l-4 border-emerald-300 pl-4 py-2 bg-emerald-50 rounded-r-lg" data-route-id="B">
+                                <h4 class="font-bold">B. 文青散策組</h4>
+                                <p class="text-sm text-gray-600">🏞️ 在<strong class="font-semibold text-gray-800">大濠公園</strong>悠閒散步、踩天鵝船，再到旁邊的<strong class="font-semibold text-gray-800">福岡市美術館</strong>接受藝術薰陶。</p>
+                            </div>
+                            <div class="choice-option border-l-4 border-amber-300 pl-4 py-2 bg-amber-50 rounded-r-lg" data-route-id="C">
+                                <h4 class="font-bold">C. 親子同樂組</h4>
+                                <p class="text-sm text-gray-600">👨‍👩‍👧‍👦 前往<strong class="font-semibold text-gray-800">福岡麵包超人兒童博物館</strong>，讓孩子們盡情放電。</p>
+                            </div>
+                            <div class="choice-option border-l-4 border-indigo-300 pl-4 py-2 bg-indigo-50 rounded-r-lg" data-route-id="D">
+                                <h4 class="font-bold">D. 博多文化體驗組</h4>
+                                <p class="text-sm text-gray-600">🏮 參觀<strong class="font-semibold text-gray-800">櫛田神社</strong>後，可至<strong class="font-semibold text-gray-800">博多町家故鄉館</strong>，體驗博多的傳統文化與工藝。</p>
+                            </div>
+                            <div class="choice-option border-l-4 border-pink-300 pl-4 py-2 bg-pink-50 rounded-r-lg" data-route-id="E">
+                                <h4 class="font-bold">E. 潮流美食探索組</h4>
+                                <p class="text-sm text-gray-600">☕ 探索有「福岡版裏原宿」之稱的<strong class="font-semibold text-gray-800">大名地區</strong>，尋找特色服飾店、雜貨舖與人氣咖啡廳。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">傍晚</p>
+                        <h3 class="font-semibold mt-1">最後採買 & 晚餐</h3>
+                        <p class="text-sm text-gray-500 mt-1">🎁 在天神或博多車站的商場購買伴手禮和藥妝。</p>
+                    </div>
+                </div>
+                 <div class="mt-6 pt-4 border-t border-gray-200">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
+                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                        <p><strong class="font-semibold">日文:</strong> クロスライフ博多天神</p>
+                        <p><strong class="font-semibold">英文:</strong> Cross Life Hakata Tenjin</p>
+                        <p><strong class="font-semibold">電話:</strong> +81 92-733-0100</p>
+                        <p><strong class="font-semibold">地址:</strong> 3 Chome-4-14 Haruyoshi, Chuo Ward, Fukuoka, 810-0003</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="day-8" class="day-section bg-white p-6 rounded-2xl shadow-lg" data-theme="japan" data-city="fukuoka" data-date="2025-08-12">
+                 <div class="space-y-4 mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 border-b-2 border-rose-200 pb-2">✈️ 回程航班資訊 (點選查看對應行程)</h3>
+                    <div class="flex flex-col gap-3">
+                        <button id="btn-return-group1" class="flight-group-btn-return p-4 rounded-lg text-left transition-all duration-300 border-2 border-transparent">
+                            <div class="flight-info" data-flight-id="BR105">
+                                <p class="font-bold text-rose-800">第一組: 長榮航空 BR105</p>
+                                <p class="text-gray-600 mt-1">起飛: 12:10 (FUK) → 抵達: 13:35 (TPE)</p>
+                                <div class="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-500">
+                                    <span id="flight-BR105-terminal">航廈: 載入中...</span>
+                                    <span id="flight-BR105-gate">登機門: 載入中...</span>
+                                    <span id="flight-BR105-status" class="font-bold">狀態: 載入中...</span>
+                                </div>
+                            </div>
+                        </button>
+                        <button id="btn-return-group2" class="flight-group-btn-return p-4 rounded-lg text-left transition-all duration-300 border-2 border-transparent">
+                            <div class="flight-info" data-flight-id="IT241">
+                                <p class="font-bold text-rose-800">第二組: 台灣虎航 IT241</p>
+                                <p class="text-gray-600 mt-1">起飛: 10:55 (FUK) → 抵達: 12:20 (TPE)</p>
+                                <div class="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-500">
+                                    <span id="flight-IT241-terminal">航廈: 載入中...</span>
+                                    <span id="flight-IT241-gate">登機門: 載入中...</span>
+                                    <span id="flight-IT241-status" class="font-bold">狀態: 載入中...</span>
+                                </div>
+                            </div>
+                        </button>
+                        <button id="btn-return-group3" class="flight-group-btn-return p-4 rounded-lg text-left transition-all duration-300 border-2 border-transparent">
+                            <div class="flight-info" data-flight-id="IT721">
+                                <p class="font-bold text-rose-800">第三組: 台灣虎航 IT721</p>
+                                <p class="text-gray-600 mt-1">起飛: 19:55 (FUK) → 抵達: 21:10 (TPE)</p>
+                                <div class="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-500">
+                                    <span id="flight-IT721-terminal">航廈: 載入中...</span>
+                                    <span id="flight-IT721-gate">登機門: 載入中...</span>
+                                    <span id="flight-IT721-status" class="font-bold">狀態: 載入中...</span>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+                <h2 class="text-2xl font-bold text-rose-700">【第8天】8月12日 (星期一)</h2>
+                <p class="mt-1 text-gray-600">滿載而歸，告別九州</p>
+                <div class="weather-container mt-4 p-4 bg-rose-50 border border-rose-200 rounded-lg flex flex-wrap items-center gap-x-6 gap-y-2">
+                    <div>
+                        <p class="weather-type text-sm font-bold text-rose-800">天氣資訊 (福岡)</p>
+                        <p class="weather-forecast text-lg font-semibold">正在載入...</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-rose-800">AI 動態穿著建議</p>
+                        <p class="clothing-suggestion text-base flex items-center gap-2">
+                            <span class="loader mini-loader"></span> 正在產生建議...
+                        </p>
+                    </div>
+                </div>
+                 <div class="mt-4">
+                    <button class="ai-tip-btn bg-gradient-to-r from-rose-400 to-orange-500 text-white font-bold py-2 px-4 rounded-full shadow-lg hover:scale-105 transition-transform" data-prompt="為一個15人的台灣家庭團體（有長輩），提供關於從福岡市區出發前往機場的3個實用旅遊提示。提示應著重於大型團體攜帶大量行李時，從天神前往福岡機場的最佳交通方式比較（計程車vs地鐵）、機場報到時間建議，以及機場免稅店的購物策略。">
+                        ✨ AI 提供今日旅遊提示
+                    </button>
+                </div>
+                
+                <!-- 第八天行程時間軸 -->
+                <div id="timeline-return-group1" class="mt-6 relative">
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">09:10</p>
+                        <h3 class="font-semibold mt-1">第一組集合 & 前往機場</h3>
+                        <p class="text-sm text-gray-500 mt-1">✈️ 於飯店大廳集合，領取行李後搭乘計程車或地鐵前往福岡機場(FUK)，準備搭機。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">12:10</p>
+                        <h3 class="font-semibold mt-1">搭機返回台灣</h3>
+                        <p class="text-sm text-gray-500 mt-1">👋 告別九州，搭乘長榮航空 BR105 返回溫暖的家。</p>
+                    </div>
+                </div>
+
+                <div id="timeline-return-group2" class="mt-6 relative hidden">
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">07:55</p>
+                        <h3 class="font-semibold mt-1">第二組集合 & 前往機場</h3>
+                        <p class="text-sm text-gray-500 mt-1">✈️ 於飯店大廳集合，領取行李後搭乘計程車或地鐵前往福岡機場(FUK)，準備搭機。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">10:55</p>
+                        <h3 class="font-semibold mt-1">搭機返回台灣</h3>
+                        <p class="text-sm text-gray-500 mt-1">👋 告別九州，搭乘台灣虎航 IT241 返回溫暖的家。</p>
+                    </div>
+                </div>
+                
+                <div id="timeline-return-group3" class="mt-6 relative hidden">
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">09:10</p>
+                        <h3 class="font-semibold mt-1">第三組集合 & 前往機場</h3>
+                        <p class="text-sm text-gray-500 mt-1">✈️ 與第一組同時於飯店大廳集合，一同前往福岡機場(FUK)。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">10:00 - 17:30</p>
+                        <h3 class="font-semibold mt-1">機場自由活動</h3>
+                        <p class="text-sm text-gray-500 mt-1">🛍️ 抵達機場後，可寄放行李，在機場免稅店進行最後採買，或在機場貴賓室/餐廳稍作休息。</p>
+                    </div>
+                     <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">約 17:30</p>
+                        <h3 class="font-semibold mt-1">準備登機</h3>
+                        <p class="text-sm text-gray-500 mt-1">💺 前往登機門，準備搭機。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">19:55</p>
+                        <h3 class="font-semibold mt-1">搭機返回台灣</h3>
+                        <p class="text-sm text-gray-500 mt-1">👋 告別九州，搭乘台灣虎航 IT721 返回溫暖的家。</p>
+                    </div>
+                </div>
+
+                 <div class="mt-6 pt-4 border-t border-gray-200">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
+                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                        <p><strong class="font-semibold">日文:</strong> クロスライフ博多天神</p>
+                        <p><strong class="font-semibold">英文:</strong> Cross Life Hakata Tenjin</p>
+                        <p><strong class="font-semibold">電話:</strong> +81 92-733-0100</p>
+                        <p><strong class="font-semibold">地址:</strong> 3 Chome-4-14 Haruyoshi, Chuo Ward, Fukuoka, 810-0003</p>
+                    </div>
+                </div>
+            </section>
+            </div>
+            <div class="lg:col-span-5 lg:sticky top-24 h-[calc(100vh-8rem)] hidden lg:block">
+                 <div class="map-container shadow-lg">
+                    <div id="map"></div>
+                    <div id="map-controls" class="map-controls">
+                        <button id="center-map-btn" class="map-control-btn" title="置中顯示">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div id="ai-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="modal-content bg-white w-full max-w-lg p-6 rounded-2xl shadow-xl transform scale-95">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-lg font-bold text-gray-800">✨ AI 旅遊助理</h3>
+                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800">&times;</button>
+            </div>
+            <div id="modal-body" class="mt-4 text-gray-700 max-h-[60vh] overflow-y-auto">
+                <div class="flex flex-col items-center justify-center h-32">
+                    <div class="loader"></div>
+                    <p class="mt-4 text-sm text-gray-500">正在為您產生專屬提示...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button id="back-to-top" class="hidden fixed bottom-5 right-5 bg-gradient-to-r from-blue-400 to-purple-500 text-white p-3 rounded-full shadow-lg hover:scale-105 transition-transform">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+        </svg>
+    </button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- PWA Service Worker & Manifest ---
+            const manifest = {
+                "name": "跟著泰坦去旅行 - 釜山福岡篇",
+                "short_name": "泰坦去旅行",
+                "start_url": ".",
+                "display": "standalone",
+                "background_color": "#F8F7F4",
+                "theme_color": "#60a5fa",
+                "description": "一個智慧化的釜山福岡旅遊行程助理",
+                "icons": [
+                    { "src": "https://placehold.co/192x192/60a5fa/ffffff?text=Titan", "type": "image/png", "sizes": "192x192" },
+                    { "src": "https://placehold.co/512x512/60a5fa/ffffff?text=Titan", "type": "image/png", "sizes": "512x512" }
+                ]
+            };
+            const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+            const manifestURL = URL.createObjectURL(manifestBlob);
+            document.querySelector('link[rel="manifest"]').setAttribute('href', manifestURL);
+
+            if ('serviceWorker' in navigator) {
+                const swContent = `
+                    const CACHE_NAME = 'titan-trip-cache-v4';
+                    const urlsToCache = [
+                        '/',
+                        'https://cdn.tailwindcss.com',
+                        'https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap',
+                        'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+                        'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+                    ];
+                    self.addEventListener('install', event => {
+                        event.waitUntil(
+                            caches.open(CACHE_NAME).then(cache => {
+                                console.log('Opened cache');
+                                return cache.addAll(urlsToCache);
+                            })
+                        );
+                    });
+                    self.addEventListener('fetch', event => {
+                        event.respondWith(
+                            caches.match(event.request).then(response => {
+                                return response || fetch(event.request);
+                            })
+                        );
+                    });
+                `;
+                const swBlob = new Blob([swContent], {type: 'application/javascript'});
+                const swURL = URL.createObjectURL(swBlob);
+
+                navigator.serviceWorker.register(swURL)
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            }
+
+            // --- 全域錯誤捕獲 ---
+            try {
+                const navLinks = document.querySelectorAll('.nav-link');
+                const sections = document.querySelectorAll('.day-section');
+                const backToTopButton = document.getElementById('back-to-top');
+                const aiTipButtons = document.querySelectorAll('.ai-tip-btn');
+                const modal = document.getElementById('ai-modal');
+                const modalBody = document.getElementById('modal-body');
+                const closeModalBtn = document.getElementById('close-modal-btn');
+                const mainTitle = document.getElementById('main-title');
+                const mapElement = document.getElementById('map');
+                const centerMapBtn = document.getElementById('center-map-btn');
+                const installPwaBtn = document.getElementById('install-pwa-btn');
+
+                // --- 地圖初始化 ---
+                let map = null;
+                if (typeof L !== 'undefined' && mapElement) {
+                    map = L.map('map', { zoomControl: false }).setView([34.5, 129.5], 7);
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                    }).addTo(map);
+                    L.control.zoom({ position: 'bottomright' }).addTo(map);
+                } else {
+                    console.error("Leaflet (L) or map element not found. Map functionality will be disabled.");
+                    if(mapElement) mapElement.innerHTML = '<div class="flex items-center justify-center h-full bg-gray-200 rounded-2xl"><p class="text-gray-500">地圖載入失敗</p></div>';
+                }
+                
+                let currentMarkers = {};
+                let currentPolylines = {};
+                let currentLatLngs = [];
+
+                const locations = {
+                    'day-1': [
+                        { id: 'day1-1', lat: 35.1681, lng: 129.1339, title: 'NEWCZ CENTUM 飯店', type: 'hotel' },
+                        { id: 'day1-2', lat: 35.1686, lng: 129.1301, title: 'Spa Land', type: 'attraction' },
+                        { id: 'day1-3', lat: 35.1917, lng: 129.2173, title: 'Arte Museum', type: 'attraction' },
+                        { id: 'day1-4', lat: 35.1550, lng: 129.1510, title: 'Yacht Holic', type: 'attraction' }
+                    ],
+                    'day-2': [
+                        { id: 'day2-1', lat: 35.1923, lng: 129.2131, title: '樂天世界', type: 'attraction' },
+                        { id: 'day2-2', lat: 35.1956, lng: 129.2158, title: 'Skyline Luge', type: 'attraction' },
+                        { id: 'day2-3', lat: 35.1914, lng: 129.2183, title: 'Brick Campus', type: 'attraction' }
+                    ],
+                    'day-3': {
+                        'A': [{ id: 'day3-hotel', lat: 35.1681, lng: 129.1339, title: 'NEWCZ CENTUM 飯店', type: 'hotel' }, { id: 'day3-1', lat: 35.1593, lng: 129.1717, title: '海雲台海岸列車', type: 'transport' }],
+                        'B': [{ id: 'day3-hotel', lat: 35.1681, lng: 129.1339, title: 'NEWCZ CENTUM 飯店', type: 'hotel' }, { id: 'day3-2', lat: 35.0975, lng: 129.0106, title: '甘川洞文化村', type: 'attraction' }],
+                        'C': [{ id: 'day3-hotel', lat: 35.1681, lng: 129.1339, title: 'NEWCZ CENTUM 飯店', type: 'hotel' }, { id: 'day3-spa', lat: 35.1686, lng: 129.1301, title: 'Spa Land', type: 'attraction' }]
+                    },
+                    'day-4': [
+                        { id: 'day4-1', lat: 33.6095, lng: 130.4095, title: '博多港', type: 'transport' },
+                        { id: 'day4-2', lat: 33.8825, lng: 130.8792, title: 'Quintessa Hotel Kokura', type: 'hotel' },
+                        { id: 'day4-3', lat: 33.9445, lng: 130.9630, title: '門司港', type: 'attraction' },
+                        { id: 'day4-4', lat: 33.9575, lng: 130.9430, title: '唐戶市場', type: 'food' }
+                    ],
+                    'day-5': [
+                        { id: 'day5-1', lat: 33.2625, lng: 131.3810, title: '湯布院金鱗湖', type: 'attraction' },
+                        { id: 'day5-2', lat: 33.3150, lng: 131.4695, title: '別府海地獄', type: 'attraction' }
+                    ],
+                    'day-6': {
+                        'A': [{ id: 'day6-start', lat: 33.8825, lng: 130.8792, title: '小倉飯店', type: 'hotel' }, { id: 'day6-1', lat: 33.5215, lng: 130.5350, title: '太宰府天滿宮', type: 'attraction' }, { id: 'day6-2', lat: 33.6495, lng: 130.1970, title: '糸島夫婦岩', type: 'attraction' }, { id: 'day6-4', lat: 33.5898, lng: 130.3983, title: 'Cross Life Hakata Tenjin', type: 'hotel' }],
+                        'B': [{ id: 'day6-start', lat: 33.8825, lng: 130.8792, title: '小倉飯店', type: 'hotel' }, { id: 'day6-1', lat: 33.5215, lng: 130.5350, title: '太宰府天滿宮', type: 'attraction' }, { id: 'day6-3', lat: 33.3958, lng: 130.5639, title: '鳥栖 Outlet', type: 'attraction' }, { id: 'day6-4', lat: 33.5898, lng: 130.3983, title: 'Cross Life Hakata Tenjin', type: 'hotel' }]
+                    },
+                    'day-7': {
+                        'A': [{ id: 'day7-hotel', lat: 33.5898, lng: 130.3983, title: '飯店', type: 'hotel' }, { id: 'day7-2', lat: 33.5896, lng: 130.4105, title: '博多運河城', type: 'attraction' }],
+                        'B': [{ id: 'day7-hotel', lat: 33.5898, lng: 130.3983, title: '飯店', type: 'hotel' }, { id: 'day7-3', lat: 33.5853, lng: 130.3749, title: '大濠公園', type: 'attraction' }],
+                        'C': [{ id: 'day7-hotel', lat: 33.5898, lng: 130.3983, title: '飯店', type: 'hotel' }, { id: 'day7-4', lat: 33.5938, lng: 130.4125, title: '麵包超人博物館', type: 'attraction' }],
+                        'D': [{ id: 'day7-hotel', lat: 33.5898, lng: 130.3983, title: '飯店', type: 'hotel' }, { id: 'day7-1', lat: 33.5932, lng: 130.4103, title: '櫛田神社', type: 'attraction' }],
+                        'E': [{ id: 'day7-hotel', lat: 33.5898, lng: 130.3983, title: '飯店', type: 'hotel' }, { id: 'day7-5', lat: 33.5868, lng: 130.3952, title: '大名地區', type: 'attraction' }]
+                    },
+                    'day-8': [
+                        { id: 'day8-1', lat: 33.5898, lng: 130.3983, title: '飯店', type: 'hotel' },
+                        { id: 'day8-2', lat: 33.5855, lng: 130.4522, title: '福岡機場', type: 'transport' }
+                    ]
+                };
+                
+                const createIcon = (svgContent, isPulsing = false) => {
+                    const pulseClass = isPulsing ? 'pulsing-icon' : '';
+                    return L.divIcon({
+                        html: `<div class="${pulseClass}">${svgContent}</div>`,
+                        className: 'custom-map-icon',
+                        iconSize: [36, 36],
+                        iconAnchor: [18, 36],
+                        popupAnchor: [0, -38]
+                    });
+                };
+
+                const iconSVG = (color) => `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="${color}" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-4.418 0-8 3.582-8 8s8 14 8 14s8-9.582 8-14s-3.582-8-8-8zm0 11a3 3 0 1 1 0-6a3 3 0 0 1 0 6z"/></svg>`;
+                
+                function getElementBorderColor(element) {
+                    const colorStr = window.getComputedStyle(element).borderLeftColor;
+                    const rgb = colorStr.match(/\d+/g).map(Number);
+                    return "#" + ((1 << 24) + (rgb[0] << 16) + (rgb[1] << 8) + rgb[2]).toString(16).slice(1);
+                }
+
+                function updateMapForDay(dayId, activeRouteId = null) {
+                    if (!map) return; 
+                    
+                    Object.values(currentMarkers).forEach(marker => map.removeLayer(marker));
+                    currentMarkers = {};
+                    Object.values(currentPolylines).forEach(line => map.removeLayer(line));
+                    currentPolylines = {};
+                    currentLatLngs = [];
+
+                    const dayData = locations[dayId];
+                    if (!dayData) return;
+
+                    const theme = document.getElementById(dayId).dataset.theme;
+                    const themeColor = theme === 'korea' ? '#8b5cf6' : '#ec4899';
+                    const isMultiChoice = !Array.isArray(dayData);
+
+                    const allLocations = new Map();
+
+                    if (isMultiChoice) {
+                        Object.values(dayData).flat().forEach(loc => {
+                            if (!allLocations.has(loc.id)) {
+                                allLocations.set(loc.id, loc);
+                            }
+                        });
+                    } else {
+                        dayData.forEach(loc => allLocations.set(loc.id, loc));
+                    }
+                    
+                    allLocations.forEach(loc => {
+                        const icon = createIcon(iconSVG(themeColor));
+                        const marker = L.marker([loc.lat, loc.lng], { icon: icon }).addTo(map);
+                        marker.bindPopup(loc.title);
+                        marker.on('click', () => {
+                            document.querySelectorAll('.timeline-item').forEach(el => el.classList.remove('highlighted'));
+                            const targetTimelineItem = document.querySelector(`[data-location-id="${loc.id}"]`);
+                            if (targetTimelineItem) {
+                                targetTimelineItem.classList.add('highlighted');
+                                targetTimelineItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                        });
+                        currentMarkers[loc.id] = marker;
+                        currentLatLngs.push([loc.lat, loc.lng]);
+                    });
+
+                    if (isMultiChoice) {
+                        for (const routeId in dayData) {
+                            const routeLocations = dayData[routeId];
+                            const routeLatLngs = routeLocations.map(loc => [loc.lat, loc.lng]);
+                            const choiceElement = document.querySelector(`#${dayId} [data-route-id="${routeId}"]`);
+                            const color = choiceElement ? getElementBorderColor(choiceElement) : '#4b5563';
+                            
+                            const line = L.polyline(routeLatLngs, {
+                                color: color,
+                                weight: routeId === activeRouteId ? 8 : 5,
+                                opacity: routeId === activeRouteId ? 1 : 0.7
+                            }).addTo(map);
+                            currentPolylines[routeId] = line;
+                        }
+                    } else if (currentLatLngs.length > 1) {
+                         currentPolylines['main'] = L.polyline(currentLatLngs, { color: themeColor, weight: 4, opacity: 0.8 }).addTo(map);
+                    }
+
+                    centerMapBtn.click();
+                }
+                
+                centerMapBtn.addEventListener('click', () => {
+                    if (map && currentLatLngs.length > 0) {
+                        map.flyToBounds(currentLatLngs, { padding: [50, 50], maxZoom: 15, duration: 1 });
+                    }
+                });
+                
+                document.querySelectorAll('.choice-option').forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        const routeId = e.currentTarget.dataset.routeId;
+                        const dayId = e.currentTarget.closest('.day-section').id;
+                        updateMapForDay(dayId, routeId);
+                    });
+                });
+                
+                // --- 導覽與滾動 ---
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const targetId = this.getAttribute('href');
+                        const targetSection = document.querySelector(targetId);
+                        if (targetSection) {
+                            targetSection.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
+                    });
+                });
+
+                const dayObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const activeId = entry.target.id;
+                            const activeTheme = entry.target.dataset.theme;
+                            
+                            navLinks.forEach(link => {
+                                link.classList.remove('active-korea', 'active-japan');
+                                if (link.getAttribute('href') === `#${activeId}`) {
+                                    link.classList.add(activeTheme === 'korea' ? 'active-korea' : 'active-japan');
+                                }
+                            });
+
+                            mainTitle.classList.remove('gradient-text-korea', 'gradient-text-japan');
+                            mainTitle.classList.add(activeTheme === 'korea' ? 'gradient-text-korea' : 'gradient-text-japan');
+
+                            backToTopButton.classList.remove('from-blue-400', 'to-purple-500', 'from-rose-400', 'to-orange-500');
+                            if (activeTheme === 'korea') {
+                                backToTopButton.classList.add('from-blue-400', 'to-purple-500');
+                            } else {
+                                backToTopButton.classList.add('from-rose-400', 'to-orange-500');
+                            }
+                            updateMapForDay(activeId);
+                        }
+                    });
+                }, { rootMargin: '0px 0px -80% 0px', threshold: 0 });
+
+                sections.forEach(section => dayObserver.observe(section));
+                
+                // --- Click to locate ---
+                document.querySelectorAll('.timeline-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const locationId = item.dataset.locationId;
+                        if (!locationId) return;
+
+                        const dayId = item.closest('.day-section').id;
+                        
+                        document.querySelectorAll('.timeline-item').forEach(el => el.classList.remove('highlighted'));
+                        item.classList.add('highlighted');
+
+                        const dayLocations = locations[dayId];
+                        let location;
+                        if (Array.isArray(dayLocations)) {
+                            location = dayLocations.find(l => l.id === locationId);
+                        } else {
+                            for (const route in dayLocations) {
+                                location = dayLocations[route].find(l => l.id === locationId);
+                                if (location) break;
+                            }
+                        }
+
+                        if (location && map) {
+                            map.flyTo([location.lat, location.lng], 16, { duration: 1 });
+                            const marker = currentMarkers[locationId];
+                            if(marker) marker.openPopup();
+                        }
+                    });
+                });
+                
+                // --- Haptic Feedback on Click ---
+                document.querySelectorAll('.timeline-item').forEach(item => {
+                    item.addEventListener('mousedown', () => {
+                        item.classList.add('timeline-item-active');
+                    });
+                    item.addEventListener('mouseup', () => {
+                        item.classList.remove('timeline-item-active');
+                    });
+                    item.addEventListener('mouseleave', () => {
+                        item.classList.remove('timeline-item-active');
+                    });
+                });
+
+                window.addEventListener('scroll', () => {
+                    if (window.scrollY > 300) {
+                        backToTopButton.classList.remove('hidden');
+                    } else {
+                        backToTopButton.classList.add('hidden');
+                    }
+                });
+
+                backToTopButton.addEventListener('click', () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+
+                // --- AI 功能 (Modal & API) ---
+                const showModal = () => {
+                    modal.classList.remove('hidden');
+                    modal.querySelector('.modal-content').classList.remove('scale-95');
+                    modal.querySelector('.modal-content').classList.add('scale-100');
+                };
+
+                const hideModal = () => {
+                    modal.querySelector('.modal-content').classList.add('scale-95');
+                    modal.querySelector('.modal-content').classList.remove('scale-100');
+                    setTimeout(() => modal.classList.add('hidden'), 300);
+                };
+
+                closeModalBtn.addEventListener('click', hideModal);
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        hideModal();
+                    }
+                });
+
+                aiTipButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const prompt = button.dataset.prompt;
+                        getAiTips(prompt);
+                    });
+                });
+
+                async function getAiTips(prompt, targetElement = modalBody) {
+                    if(targetElement === modalBody) {
+                        modalBody.innerHTML = `<div class="flex flex-col items-center justify-center h-32">
+                            <div class="loader"></div>
+                            <p class="mt-4 text-sm text-gray-500">正在為您產生專屬提示...</p>
+                        </div>`;
+                        showModal();
+                    }
+
+                    try {
+                        let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                        const payload = { contents: chatHistory };
+                        const apiKey = ""; 
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                        
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP 錯誤! 狀態: ${response.status}`);
+                        }
+
+                        const result = await response.json();
+                        
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            
+                            const rawText = result.candidates[0].content.parts[0].text;
+                            
+                            if (targetElement !== modalBody) {
+                                targetElement.innerHTML = rawText.replace(/\*\*/g, '');
+                            } else {
+                                const lines = rawText.split('\n');
+                                let htmlContent = '';
+                                let inList = false;
+
+                                lines.forEach(line => {
+                                    let processedLine = line.trim();
+                                    if (inList && processedLine === '') {
+                                        htmlContent += '</ul>';
+                                        inList = false;
+                                        return;
+                                    }
+                                    processedLine = processedLine.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>');
+                                    if (processedLine.startsWith('* ') || processedLine.startsWith('- ') || /^\d+\.\s/.test(processedLine)) {
+                                        if (!inList) {
+                                            htmlContent += '<ul class="space-y-2">';
+                                            inList = true;
+                                        }
+                                        processedLine = processedLine.replace(/^\s*[\*\-]\s*|\s*\d+\.\s*/, '').trim();
+                                        htmlContent += `<li class="ml-5 list-disc">${processedLine}</li>`;
+                                    } else {
+                                        if (inList) {
+                                            htmlContent += '</ul>';
+                                            inList = false;
+                                        }
+                                        if (processedLine.startsWith('### ')) {
+                                            htmlContent += `<h4 class="text-md font-bold text-gray-800 mt-4 mb-2">${processedLine.replace(/###\s?/, '')}</h4>`;
+                                        } else if (processedLine.startsWith('#### ')) {
+                                            htmlContent += `<h5 class="text-base font-bold text-gray-800 mt-3 mb-1">${processedLine.replace(/####\s?/, '')}</h5>`;
+                                        } else if (processedLine === '---') {
+                                            htmlContent += '<hr class="my-4 border-gray-200">';
+                                        } else if (processedLine) { 
+                                            htmlContent += `<p class="mb-2">${processedLine}</p>`;
+                                        }
+                                    }
+                                });
+                                if (inList) { htmlContent += '</ul>'; }
+                                targetElement.innerHTML = htmlContent;
+                            }
+
+                        } else {
+                            throw new Error("從API收到的回應格式無效。");
+                        }
+
+                    } catch (error) {
+                        console.error("呼叫 Gemini API 時發生錯誤:", error);
+                        const suggestionEl = targetElement;
+                        const errorMessage = `<span class="retry-suggestion">抱歉，無法取得提示。請點此重試。</span>`;
+                        suggestionEl.innerHTML = errorMessage;
+                    }
+                }
+                
+                // --- 天氣功能 ---
+                async function getWeatherForDate(travelDateStr, city) {
+                    const today = new Date();
+                    const travelDate = new Date(travelDateStr);
+                    today.setHours(0, 0, 0, 0);
+                    travelDate.setHours(0, 0, 0, 0);
+
+                    const diffTime = travelDate - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    await new Promise(resolve => setTimeout(resolve, 500)); 
+
+                    if (diffDays < 0) {
+                        return { type: '過去天氣', forecast: '旅程已結束', suggestion: '期待下次旅行！' };
+                    } else if (diffDays === 0) {
+                        const temp = 27 + Math.floor(Math.random() * 5);
+                        const conditions = ['🌦️ 局部陣雨', '☀️ 晴朗'];
+                        const condition = conditions[Math.floor(Math.random() * conditions.length)];
+                        return { type: '即時天氣', forecast: `${condition} ${temp}°C`, raw: {temp: temp, condition: condition.substring(2)} };
+                    } else if (diffDays <= 7) {
+                        const temp = 26 + Math.floor(Math.random() * 5);
+                        const conditions = ['🌤️ 多雲轉晴', '🌦️ 局部陣雨', '☀️ 晴朗'];
+                        const condition = conditions[Math.floor(Math.random() * conditions.length)];
+                        return { type: '天氣預測', forecast: `${condition} ${temp}°C - ${temp + 4}°C`, raw: {temp: temp, condition: condition.substring(2)} };
+                    } else {
+                        if (city === 'busan') {
+                            return { type: '歷史平均天氣', forecast: '🌦️ 晴時多雲偶有雷陣雨 25°C - 30°C', raw: {temp: 27, condition: '晴時多雲偶有雷陣雨'} };
+                        } else {
+                            return { type: '歷史平均天氣', forecast: '☀️ 晴朗炎熱 26°C - 32°C', raw: {temp: 29, condition: '晴朗炎熱'} };
+                        }
+                    }
+                }
+
+                async function updateWeatherForContainer(container) {
+                    const section = container.closest('.day-section');
+                    const city = section.dataset.city;
+                    const date = section.dataset.date;
+                    const typeEl = container.querySelector('.weather-type');
+                    const forecastEl = container.querySelector('.weather-forecast');
+                    const suggestionEl = container.querySelector('.clothing-suggestion');
+                    
+                    suggestionEl.innerHTML = `<span class="loader mini-loader"></span> 正在產生建議...`;
+
+                    try {
+                        const weatherData = await getWeatherForDate(date, city);
+                        typeEl.textContent = `${weatherData.type} (${city === 'busan' ? '釜山' : '福岡'})`;
+                        forecastEl.textContent = weatherData.forecast;
+
+                        if(weatherData.raw) {
+                            const clothingPrompt = `根據以下天氣資訊，為一個包含長輩、在${city === 'busan' ? '釜山' : '福岡'}旅遊的15人台灣家庭團體，提供今天簡潔的中文穿著建議。天氣狀況：${weatherData.raw.condition}，溫度：約攝氏${weatherData.raw.temp}度。建議應少於30個字。`;
+                            getAiTips(clothingPrompt, suggestionEl);
+                        } else {
+                            suggestionEl.textContent = weatherData.suggestion;
+                        }
+
+                    } catch (error) {
+                        forecastEl.textContent = '無法取得天氣';
+                        suggestionEl.innerHTML = `<span class="retry-suggestion">抱歉，無法取得提示。請點此重試。</span>`;
+                    }
+                }
+                
+                document.body.addEventListener('click', function(e) {
+                    if (e.target.closest('.retry-suggestion')) {
+                        const container = e.target.closest('.weather-container');
+                        updateWeatherForContainer(container);
+                    }
+                });
+
+                async function updateAllWeather() {
+                    const weatherSections = document.querySelectorAll('.weather-container');
+                    for (const container of weatherSections) {
+                        await updateWeatherForContainer(container);
+                    }
+                }
+
+                // --- 動態航班資訊功能 ---
+                async function simulateFlightApiCall(flightId) {
+                    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1500));
+                    
+                    const flightDb = {
+                        '7C6154': { terminal: '第一航廈', gate: 'A6', status: '準時', statusClass: 'flight-status-ontime' },
+                        'CI188': { terminal: '第二航廈', gate: 'B7', status: '準時', statusClass: 'flight-status-ontime' },
+                        'BR105': { terminal: '國際線航廈', gate: '56', status: '準時', statusClass: 'flight-status-ontime' },
+                        'IT241': { terminal: '國際線航廈', gate: '51', status: '準時', statusClass: 'flight-status-ontime' },
+                        'IT721': { terminal: '國際線航廈', gate: '53', status: '準時', statusClass: 'flight-status-ontime' },
+                    };
+
+                    if (Math.random() < 0.15) { 
+                        const originalGate = flightDb[flightId].gate;
+                        const gatePrefix = originalGate.replace(/[0-9]/g, '');
+                        const newGateNum = parseInt(originalGate.replace(/\D/g, '')) + 1;
+                        flightDb[flightId].gate = `${gatePrefix}${newGateNum} (變更)`;
+                    }
+
+                    if (flightId === 'CI188' && Math.random() < 0.2) { 
+                         flightDb[flightId].status = '延遲';
+                         flightDb[flightId].statusClass = 'flight-status-delayed';
+                    }
+
+                    if (flightDb[flightId]) {
+                        return flightDb[flightId];
+                    } else {
+                        throw new Error('找不到航班資訊');
+                    }
+                }
+
+                async function updateAllFlightInfo() {
+                    const flightElements = document.querySelectorAll('.flight-info');
+                    for (const el of flightElements) {
+                        const flightId = el.dataset.flightId;
+                        if (!flightId) continue;
+                        try {
+                            const data = await simulateFlightApiCall(flightId);
+                            document.getElementById(`flight-${flightId}-terminal`).textContent = `航廈: ${data.terminal}`;
+                            document.getElementById(`flight-${flightId}-gate`).textContent = `登機門: ${data.gate}`;
+                            const statusEl = document.getElementById(`flight-${flightId}-status`);
+                            statusEl.textContent = `狀態: ${data.status}`;
+                            statusEl.className = `font-bold ${data.statusClass}`;
+                        } catch (error) {
+                            console.error(`無法取得航班 ${flightId} 資訊:`, error);
+                            document.getElementById(`flight-${flightId}-terminal`).textContent = `航廈: 讀取失敗`;
+                            document.getElementById(`flight-${flightId}-gate`).textContent = `登機門: 讀取失敗`;
+                            document.getElementById(`flight-${flightId}-status`).textContent = `狀態: 讀取失敗`;
+                        }
+                    }
+                }
+
+                // --- 行程切換 ---
+                // Day 1
+                const btnGroup1 = document.getElementById('btn-group1');
+                const btnGroup2 = document.getElementById('btn-group2');
+                const timelineGroup1 = document.getElementById('timeline-group1');
+                const timelineGroup2 = document.getElementById('timeline-group2');
+
+                function setActiveGroup(groupNum) {
+                    if (groupNum === 1) {
+                        btnGroup1.classList.add('active');
+                        btnGroup2.classList.remove('active');
+                        timelineGroup1.classList.remove('hidden');
+                        timelineGroup2.classList.add('hidden');
+                    } else {
+                        btnGroup1.classList.remove('active');
+                        btnGroup2.classList.add('active');
+                        timelineGroup1.classList.add('hidden');
+                        timelineGroup2.classList.remove('hidden');
+                    }
+                }
+                btnGroup1.addEventListener('click', () => setActiveGroup(1));
+                btnGroup2.addEventListener('click', () => setActiveGroup(2));
+                
+                // Day 8
+                const btnReturnGroup1 = document.getElementById('btn-return-group1');
+                const btnReturnGroup2 = document.getElementById('btn-return-group2');
+                const btnReturnGroup3 = document.getElementById('btn-return-group3');
+                const timelineReturnGroup1 = document.getElementById('timeline-return-group1');
+                const timelineReturnGroup2 = document.getElementById('timeline-return-group2');
+                const timelineReturnGroup3 = document.getElementById('timeline-return-group3');
+                
+                function setActiveReturnGroup(groupNum) {
+                    btnReturnGroup1.classList.toggle('active', groupNum === 1);
+                    btnReturnGroup2.classList.toggle('active', groupNum === 2);
+                    btnReturnGroup3.classList.toggle('active', groupNum === 3);
+                    timelineReturnGroup1.classList.toggle('hidden', groupNum !== 1);
+                    timelineReturnGroup2.classList.toggle('hidden', groupNum !== 2);
+                    timelineReturnGroup3.classList.toggle('hidden', groupNum !== 3);
+                }
+                btnReturnGroup1.addEventListener('click', () => setActiveReturnGroup(1));
+                btnReturnGroup2.addEventListener('click', () => setActiveReturnGroup(2));
+                btnReturnGroup3.addEventListener('click', () => setActiveReturnGroup(3));
+
+
+                // --- 初始載入 ---
+                let deferredPrompt;
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    deferredPrompt = e;
+                    installPwaBtn.classList.remove('hidden');
+                });
+
+                installPwaBtn.addEventListener('click', (e) => {
+                    installPwaBtn.classList.add('hidden');
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('User accepted the A2HS prompt');
+                        } else {
+                            console.log('User dismissed the A2HS prompt');
+                        }
+                        deferredPrompt = null;
+                    });
+                });
+
+                setActiveGroup(1); 
+                setActiveReturnGroup(1);
+                updateAllWeather();
+                updateMapForDay('day-1');
+                updateAllFlightInfo();
+                if (navLinks.length > 0) {
+                    navLinks[0].classList.add('active-korea');
+                }
+            } catch (error) {
+                console.error("頁面初始化時發生嚴重錯誤:", error);
+                document.body.innerHTML = `<div class="p-8 text-center"><h1 class="text-2xl font-bold text-red-600">頁面載入失敗</h1><p class="mt-4 text-gray-700">很抱歉，頁面發生了無法預期的錯誤，請嘗試重新整理。如果問題持續發生，請聯繫技術支援。</p><p class="mt-2 text-sm text-gray-500">錯誤訊息: ${error.message}</p></div>`;
+            }
+        });
+    </script>
+
+</body>
+</html>
