@@ -4,12 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>跟著泰坦去旅行 - 釜山福岡行程</title>
-    
-    <!-- PWA Manifest and Theme Color -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#60a5fa">
-    <link rel="apple-touch-icon" href="https://placehold.co/192x192/60a5fa/ffffff?text=Titan">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -94,7 +88,7 @@
              border-radius: 1rem;
              z-index: 10;
         }
-        .retry-suggestion {
+        .retry-suggestion-weather, .retry-suggestion-clothing {
             cursor: pointer;
             text-decoration: underline;
             color: #60a5fa;
@@ -156,9 +150,8 @@
         .map-control-btn:hover {
             background-color: #f7f7f7;
         }
-        .timeline-item {
+        .timeline-item, .choice-option, .accommodation-btn {
             transition: transform 0.2s, background-color 0.2s;
-            padding: 8px 0;
             cursor: pointer;
         }
         .timeline-item.highlighted {
@@ -166,7 +159,7 @@
             border-radius: 8px;
             transform: scale(1.02);
         }
-        .timeline-item:active {
+        .timeline-item:active, .choice-option:active, .accommodation-btn:active {
             transform: scale(0.98);
         }
         .custom-map-icon svg {
@@ -180,24 +173,14 @@
         .pulsing-icon {
             animation: pulse 1.5s infinite;
         }
-        .choice-option {
-            cursor: pointer;
-        }
     </style>
 </head>
 <body class="text-gray-800">
 
     <header class="bg-white/80 backdrop-blur-lg shadow-md sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-3 relative">
-            <div class="text-center">
-                <h1 id="main-title" class="text-2xl md:text-3xl font-bold text-center gradient-text-korea">跟著泰坦去旅行 ‧ 釜山福岡篇</h1>
-                <p class="text-center text-gray-500 mt-1 text-sm md:text-base">跨越海峽的足跡，編織共同的夏日回憶</p>
-            </div>
-            <button id="install-pwa-btn" class="hidden absolute top-1/2 right-4 -translate-y-1/2 bg-blue-500 text-white rounded-full p-2 shadow-lg hover:bg-blue-600 transition-colors" title="新增到手機桌面">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                </svg>
-            </button>
+        <div class="container mx-auto px-4 py-3">
+            <h1 id="main-title" class="text-2xl md:text-3xl font-bold text-center gradient-text-korea">跟著泰坦去旅行 ‧ 釜山福岡篇</h1>
+            <p class="text-center text-gray-500 mt-1 text-sm md:text-base">跨越海峽的足跡，編織共同的夏日回憶</p>
             <nav id="nav-menu" class="mt-4 overflow-x-auto whitespace-nowrap pb-2">
                 <div class="flex justify-center space-x-2 px-4">
                     <a href="#day-1" class="nav-link px-3 py-1 text-sm font-medium text-gray-700 rounded-full hover:bg-blue-100 transition-colors">第 1 天</a>
@@ -223,30 +206,26 @@
                     <h3 class="text-lg font-bold text-gray-800 border-b-2 border-blue-200 pb-2">✈️ 去程航班資訊 (點選查看對應行程)</h3>
                     <div class="flex flex-col gap-3">
                         <button id="btn-group1" class="flight-group-btn flex-1 p-4 rounded-lg text-left transition-all duration-300 border-2 border-transparent">
-                            <div class="flight-info" data-flight-id="7C6154">
-                                <p class="font-bold text-blue-800">第一組 (13人): 濟州航空 7C6154</p>
+                            <div class="flight-info" data-flight-id="7C6154" data-departure="TPE" data-arrival="PUS" data-date="2025-08-05">
+                                <p class="font-bold text-blue-800">第一組 (9人): 濟州航空 7C6154</p>
                                 <p class="text-gray-600 mt-1">起飛: 02:50 (TPE) → 抵達: 06:20 (PUS)</p>
                                 <div class="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-500">
-                                    <span id="flight-7C6154-terminal">航廈: 載入中...</span>
-                                    <span id="flight-7C6154-gate">登機門: 載入中...</span>
-                                    <span id="flight-7C6154-status" class="font-bold">狀態: 載入中...</span>
+                                    <span class="col-span-3">狀態: 載入中...</span>
                                 </div>
                             </div>
                         </button>
                         <button id="btn-group2" class="flight-group-btn flex-1 p-4 rounded-lg text-left transition-all duration-300 border-2 border-transparent">
-                            <div class="flight-info" data-flight-id="CI188">
-                                <p class="font-bold text-blue-800">第二組 (2人): 中華航空 CI188</p>
+                            <div class="flight-info" data-flight-id="CI188" data-departure="TPE" data-arrival="PUS" data-date="2025-08-05">
+                                <p class="font-bold text-blue-800">第二組 (3人): 中華航空 CI188</p>
                                 <p class="text-gray-600 mt-1">起飛: 07:55 (TPE) → 抵達: 11:15 (PUS)</p>
                                 <div class="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-500">
-                                    <span id="flight-CI188-terminal">航廈: 載入中...</span>
-                                    <span id="flight-CI188-gate">登機門: 載入中...</span>
-                                    <span id="flight-CI188-status" class="font-bold">狀態: 載入中...</span>
+                                    <span class="col-span-3">狀態: 載入中...</span>
                                 </div>
                             </div>
                         </button>
                     </div>
                 </div>
-                <h2 class="text-2xl font-bold text-blue-700">【第1天】8月5日 (星期一)</h2>
+                <h2 class="text-2xl font-bold text-blue-700">【第1天】8月5日 (星期二)</h2>
                 <p class="mt-1 text-gray-600">分頭抵達 & 會合啟用通行證</p>
                 <div class="mt-4 flex flex-wrap gap-4 text-sm">
                     <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🇰🇷 韓國釜山</span>
@@ -268,6 +247,35 @@
                     <button class="ai-tip-btn bg-gradient-to-r from-blue-400 to-purple-500 text-white font-bold py-2 px-4 rounded-full shadow-lg hover:scale-105 transition-transform" data-prompt="為一個15人的台灣家庭團體（有長輩），提供關於第一天抵達釜山行程的3個實用旅遊提示。行程重點包括：清晨和中午分批抵達機場、在Spa Land會合休息、下午參觀Arte Museum，晚上搭乘Yacht Holic夜間遊艇。提示應著重於團體協調、體力分配和夜間活動的建議。">
                         ✨ AI 提供今日旅遊提示
                     </button>
+                </div>
+
+                <!-- 搭乘名單卡片 -->
+                <div class="mt-6 bg-blue-50 p-4 rounded-xl border border-blue-200">
+                    <h4 class="font-bold text-blue-800 text-base mb-3 pb-2 border-b border-blue-200">✈️ 搭乘名單一覽</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="font-semibold text-gray-700 mb-2">第一組 (7C6154)</p>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1 text-gray-600">
+                                <span>翁偉鈞</span>
+                                <span>陳玟樺</span>
+                                <span>梁宇睿</span>
+                                <span>梁宇丞</span>
+                                <span>梁宇任</span>
+                                <span>黃文煜</span>
+                                <span>鍾沛漩</span>
+                                <span>黃冠穎</span>
+                                <span>黃昶霖</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-700 mb-2">第二組 (CI188)</p>
+                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1 text-gray-600">
+                                <span>梁世輝</span>
+                                <span>劉靜雯</span>
+                                <span>梁巧墨</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 行程時間軸 -->
@@ -327,7 +335,7 @@
                         <div class="timeline-dot"></div>
                         <p class="font-bold text-blue-600">15:30 - 17:30</p>
                         <h3 class="font-semibold mt-1">Arte Museum 沉浸式藝術館</h3>
-                        <p class="text-sm text-gray-500 mt-1">🎨 【通行證第一站】體驗光影交織的沉浸式數位藝術展覽。<br>🎟️ <span class="font-semibold text-green-600">釜山PASS ✔️ 免費</span></p>
+                        <p class="text-sm text-gray-500 mt-1">� 【通行證第一站】體驗光影交織的沉浸式數位藝術展覽。<br>🎟️ <span class="font-semibold text-green-600">釜山PASS ✔️ 免費</span></p>
                     </div>
                     <div class="timeline-item relative pl-10">
                         <div class="timeline-dot"></div>
@@ -344,18 +352,18 @@
                 </div>
 
                 <div class="mt-6 pt-4 border-t border-gray-200">
-                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
-                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊 (點擊查看名單)</h4>
+                    <button class="accommodation-btn w-full mt-2 text-left bg-gradient-to-r from-indigo-100 to-violet-100 p-3 rounded-lg border border-indigo-200 hover:from-indigo-200 hover:to-violet-200" data-accommodation="newcz">
                         <p><strong class="font-semibold">韓文:</strong> 뉴 씨엘 드 씨엘 호텔 센텀</p>
                         <p><strong class="font-semibold">英文:</strong> NEWCZ CENTUM Hotel</p>
                         <p><strong class="font-semibold">電話:</strong> +82 51-750-1100</p>
                         <p><strong class="font-semibold">地址:</strong> 37 Centum 1-ro, Haeundae-gu, Busan</p>
-                    </div>
+                    </button>
                 </div>
             </section>
 
             <section id="day-2" class="day-section bg-white p-6 rounded-2xl shadow-lg" data-theme="korea" data-city="busan" data-date="2025-08-06">
-                <h2 class="text-2xl font-bold text-blue-700">【第2天】8月6日 (星期二)</h2>
+                <h2 class="text-2xl font-bold text-blue-700">【第2天】8月6日 (星期三)</h2>
                 <p class="mt-1 text-gray-600">機張動感樂園 & 購物日</p>
                 <div class="mt-4 flex flex-wrap gap-4 text-sm">
                     <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🇰🇷 韓國釜山</span>
@@ -413,18 +421,18 @@
                     </div>
                 </div>
                  <div class="mt-6 pt-4 border-t border-gray-200">
-                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
-                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊 (點擊查看名單)</h4>
+                    <button class="accommodation-btn w-full mt-2 text-left bg-gradient-to-r from-indigo-100 to-violet-100 p-3 rounded-lg border border-indigo-200 hover:from-indigo-200 hover:to-violet-200" data-accommodation="newcz">
                         <p><strong class="font-semibold">韓文:</strong> 뉴 씨엘 드 씨엘 호텔 센텀</p>
                         <p><strong class="font-semibold">英文:</strong> NEWCZ CENTUM Hotel</p>
                         <p><strong class="font-semibold">電話:</strong> +82 51-750-1100</p>
                         <p><strong class="font-semibold">地址:</strong> 37 Centum 1-ro, Haeundae-gu, Busan</p>
-                    </div>
+                    </button>
                 </div>
             </section>
 
             <section id="day-3" class="day-section bg-white p-6 rounded-2xl shadow-lg" data-theme="korea" data-city="busan" data-date="2025-08-07">
-                <h2 class="text-2xl font-bold text-blue-700">【第3天】8月7日 (星期三)</h2>
+                <h2 class="text-2xl font-bold text-blue-700">【第3天】8月7日 (星期四)</h2>
                 <p class="mt-1 text-gray-600">分頭行動 & 前往日本</p>
                 <div class="mt-4 flex flex-wrap gap-4 text-sm">
                     <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🇰🇷 韓國釜山</span>
@@ -501,16 +509,16 @@
                     </div>
                 </div>
                  <div class="mt-6 pt-4 border-t border-gray-200">
-                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
-                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊 (點擊查看名單)</h4>
+                    <button class="accommodation-btn w-full mt-2 text-left bg-gradient-to-r from-indigo-100 to-violet-100 p-3 rounded-lg border border-indigo-200 hover:from-indigo-200 hover:to-violet-200" data-accommodation="camellia">
                         <p><strong class="font-semibold">船名:</strong> 山茶花號 (Camellia Line)</p>
                         <p><strong class="font-semibold">住宿:</strong> 船上艙房</p>
-                    </div>
+                    </button>
                 </div>
             </section>
             
             <section id="day-4" class="day-section bg-white p-6 rounded-2xl shadow-lg" data-theme="japan" data-city="fukuoka" data-date="2025-08-08">
-                <h2 class="text-2xl font-bold text-rose-700">【第4天】8月8日 (星期四)</h2>
+                <h2 class="text-2xl font-bold text-rose-700">【第4天】8月8日 (星期五)</h2>
                 <p class="mt-1 text-gray-600">抵達九州 & 關門海峽一日遊</p>
                 <div class="mt-4 flex flex-wrap gap-4 text-sm">
                     <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🇯🇵 日本北九州</span>
@@ -579,18 +587,18 @@
                     </div>
                 </div>
                 <div class="mt-6 pt-4 border-t border-gray-200">
-                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
-                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊 (點擊查看名單)</h4>
+                    <button class="accommodation-btn w-full mt-2 text-left bg-gradient-to-r from-rose-100 to-orange-100 p-3 rounded-lg border border-rose-200 hover:from-rose-200 hover:to-orange-200" data-accommodation="quintessa">
                         <p><strong class="font-semibold">日文:</strong> クインテッサホテル小倉 Comic & Books</p>
                         <p><strong class="font-semibold">英文:</strong> Quintessa Hotel Kokura Comic & Books</p>
                         <p><strong class="font-semibold">電話:</strong> +81 93-513-5050</p>
                         <p><strong class="font-semibold">地址:</strong> 2 Chome-5-13 Kyomachi, Kokurakita Ward, Kitakyushu, Fukuoka 802-0002</p>
-                    </div>
+                    </button>
                 </div>
             </section>
 
-            <section id="day-5" class="day-section bg-white p-6 rounded-2xl shadow-lg" data-theme="japan" data-city="fukuoka" data-date="2025-08-09">
-                <h2 class="text-2xl font-bold text-rose-700">【第5天】8月9日 (星期五)</h2>
+            <section id="day-5" class="day-section bg-white p-6 rounded-2xl shadow-lg" data-theme="japan" data-city="oita" data-date="2025-08-09">
+                <h2 class="text-2xl font-bold text-rose-700">【第5天】8月9日 (星期六)</h2>
                 <p class="mt-1 text-gray-600">溫泉鄉一日遊 (湯布院 & 別府)</p>
                 <div class="mt-4 flex flex-wrap gap-4 text-sm">
                     <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🇯🇵 日本大分</span>
@@ -599,7 +607,7 @@
                 </div>
                 <div class="weather-container mt-4 p-4 bg-rose-50 border border-rose-200 rounded-lg flex flex-wrap items-center gap-x-6 gap-y-2">
                     <div>
-                        <p class="weather-type text-sm font-bold text-rose-800">天氣資訊 (大分山區)</p>
+                        <p class="weather-type text-sm font-bold text-rose-800">天氣資訊 (大分)</p>
                         <p class="weather-forecast text-lg font-semibold">正在載入...</p>
                     </div>
                     <div>
@@ -647,18 +655,18 @@
                     </div>
                 </div>
                  <div class="mt-6 pt-4 border-t border-gray-200">
-                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
-                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊 (點擊查看名單)</h4>
+                    <button class="accommodation-btn w-full mt-2 text-left bg-gradient-to-r from-rose-100 to-orange-100 p-3 rounded-lg border border-rose-200 hover:from-rose-200 hover:to-orange-200" data-accommodation="quintessa">
                         <p><strong class="font-semibold">日文:</strong> クインテッサホテル小倉 Comic & Books</p>
                         <p><strong class="font-semibold">英文:</strong> Quintessa Hotel Kokura Comic & Books</p>
                         <p><strong class="font-semibold">電話:</strong> +81 93-513-5050</p>
                         <p><strong class="font-semibold">地址:</strong> 2 Chome-5-13 Kyomachi, Kokurakita Ward, Kitakyushu, Fukuoka 802-0002</p>
-                    </div>
+                    </button>
                 </div>
             </section>
 
             <section id="day-6" class="day-section bg-white p-6 rounded-2xl shadow-lg" data-theme="japan" data-city="fukuoka" data-date="2025-08-10">
-                <h2 class="text-2xl font-bold text-rose-700">【第6天】8月10日 (星期六)</h2>
+                <h2 class="text-2xl font-bold text-rose-700">【第6天】8月10日 (星期日)</h2>
                 <p class="mt-1 text-gray-600">太宰府 & 下午自由選</p>
                 <div class="mt-4 flex flex-wrap gap-4 text-sm">
                     <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🇯🇵 日本福岡</span>
@@ -730,18 +738,18 @@
                     </div>
                 </div>
                  <div class="mt-6 pt-4 border-t border-gray-200">
-                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
-                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊 (點擊查看名單)</h4>
+                    <button class="accommodation-btn w-full mt-2 text-left bg-gradient-to-r from-rose-100 to-orange-100 p-3 rounded-lg border border-rose-200 hover:from-rose-200 hover:to-orange-200" data-accommodation="crosslife">
                         <p><strong class="font-semibold">日文:</strong> クロスライフ博多天神</p>
                         <p><strong class="font-semibold">英文:</strong> Cross Life Hakata Tenjin</p>
                         <p><strong class="font-semibold">電話:</strong> +81 92-733-0100</p>
                         <p><strong class="font-semibold">地址:</strong> 3 Chome-4-14 Haruyoshi, Chuo Ward, Fukuoka, 810-0003</p>
-                    </div>
+                    </button>
                 </div>
             </section>
 
             <section id="day-7" class="day-section bg-white p-6 rounded-2xl shadow-lg" data-theme="japan" data-city="fukuoka" data-date="2025-08-11">
-                <h2 class="text-2xl font-bold text-rose-700">【第7天】8月11日 (星期日)</h2>
+                <h2 class="text-2xl font-bold text-rose-700">【第7天】8月11日 (星期一)</h2>
                 <p class="mt-1 text-gray-600">還車 & 市區巡禮</p>
                 <div class="mt-4 flex flex-wrap gap-4 text-sm">
                     <span class="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">🇯🇵 日本福岡</span>
@@ -769,20 +777,15 @@
                      <div class="timeline-item relative pl-10">
                         <div class="timeline-dot"></div>
                         <p class="font-bold text-rose-600">本日集合建議</p>
-                        <h3 class="font-semibold mt-1">09:30 @ 飯店大廳</h3>
-                        <p class="text-sm text-gray-500 mt-1">準備出發還車，開啟今日行程。</p>
+                        <h3 class="font-semibold mt-1">09:00 @ 飯店大廳</h3>
+                        <p class="text-sm text-gray-500 mt-1">準備開啟今日自由行程。</p>
                     </div>
                      <div class="timeline-item relative pl-10">
                         <div class="timeline-dot"></div>
-                        <p class="font-bold text-rose-600">10:00 - 10:30</p>
-                        <h3 class="font-semibold mt-1">還車</h3>
-                        <p class="text-sm text-gray-500 mt-1">🔑 早餐後，將車開到天神附近的租車公司據點歸還。</p>
-                    </div>
-                     <div class="timeline-item relative pl-10">
-                        <div class="timeline-dot"></div>
-                        <p class="font-bold text-rose-600">10:30 - 18:30</p>
-                        <h3 class="font-semibold mt-1">福岡市區八小時自由行【五選一】</h3>
-                        <div class="mt-2 space-y-4">
+                        <p class="font-bold text-rose-600">09:00 - 21:00</p>
+                        <h3 class="font-semibold mt-1">福岡市區十二小時自由行【五選一】</h3>
+                        <p class="text-sm text-gray-500 mt-1">⚠️ <strong class="font-semibold text-red-500">注意事項：</strong>請於 <strong class="font-semibold text-gray-800">10:00</strong> 前至天神附近的租車公司據點還車。</p>
+                        <div class="mt-4 space-y-4">
                             <div class="choice-option border-l-4 border-sky-300 pl-4 py-2 bg-sky-50 rounded-r-lg" data-route-id="A">
                                 <h4 class="font-bold">A. 購物血拚組</h4>
                                 <p class="text-sm text-gray-600">🛍️ 專攻<strong class="font-semibold text-gray-800">博多運河城</strong>與<strong class="font-semibold text-gray-800">天神地下街</strong>，滿足所有購物需求。</p>
@@ -813,13 +816,13 @@
                     </div>
                 </div>
                  <div class="mt-6 pt-4 border-t border-gray-200">
-                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
-                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊 (點擊查看名單)</h4>
+                    <button class="accommodation-btn w-full mt-2 text-left bg-gradient-to-r from-rose-100 to-orange-100 p-3 rounded-lg border border-rose-200 hover:from-rose-200 hover:to-orange-200" data-accommodation="crosslife">
                         <p><strong class="font-semibold">日文:</strong> クロスライフ博多天神</p>
                         <p><strong class="font-semibold">英文:</strong> Cross Life Hakata Tenjin</p>
                         <p><strong class="font-semibold">電話:</strong> +81 92-733-0100</p>
                         <p><strong class="font-semibold">地址:</strong> 3 Chome-4-14 Haruyoshi, Chuo Ward, Fukuoka, 810-0003</p>
-                    </div>
+                    </button>
                 </div>
             </section>
 
@@ -828,41 +831,35 @@
                     <h3 class="text-lg font-bold text-gray-800 border-b-2 border-rose-200 pb-2">✈️ 回程航班資訊 (點選查看對應行程)</h3>
                     <div class="flex flex-col gap-3">
                         <button id="btn-return-group1" class="flight-group-btn-return p-4 rounded-lg text-left transition-all duration-300 border-2 border-transparent">
-                            <div class="flight-info" data-flight-id="BR105">
-                                <p class="font-bold text-rose-800">第一組: 長榮航空 BR105</p>
-                                <p class="text-gray-600 mt-1">起飛: 12:10 (FUK) → 抵達: 13:35 (TPE)</p>
+                            <div class="flight-info" data-flight-id="IT241" data-departure="FUK" data-arrival="TPE" data-date="2025-08-12">
+                                <p class="font-bold text-rose-800">第一組 (5人): 台灣虎航 IT241</p>
+                                <p class="text-gray-600 mt-1">起飛: 10:55 (FUK) → 抵達: 12:20 (TPE)</p>
                                 <div class="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-500">
-                                    <span id="flight-BR105-terminal">航廈: 載入中...</span>
-                                    <span id="flight-BR105-gate">登機門: 載入中...</span>
-                                    <span id="flight-BR105-status" class="font-bold">狀態: 載入中...</span>
+                                    <span class="col-span-3">狀態: 載入中...</span>
                                 </div>
                             </div>
                         </button>
                         <button id="btn-return-group2" class="flight-group-btn-return p-4 rounded-lg text-left transition-all duration-300 border-2 border-transparent">
-                            <div class="flight-info" data-flight-id="IT241">
-                                <p class="font-bold text-rose-800">第二組: 台灣虎航 IT241</p>
-                                <p class="text-gray-600 mt-1">起飛: 10:55 (FUK) → 抵達: 12:20 (TPE)</p>
+                            <div class="flight-info" data-flight-id="BR105" data-departure="FUK" data-arrival="TPE" data-date="2025-08-12">
+                                <p class="font-bold text-rose-800">第二組 (4人): 長榮航空 BR105</p>
+                                <p class="text-gray-600 mt-1">起飛: 12:10 (FUK) → 抵達: 13:35 (TPE)</p>
                                 <div class="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-500">
-                                    <span id="flight-IT241-terminal">航廈: 載入中...</span>
-                                    <span id="flight-IT241-gate">登機門: 載入中...</span>
-                                    <span id="flight-IT241-status" class="font-bold">狀態: 載入中...</span>
+                                    <span class="col-span-3">狀態: 載入中...</span>
                                 </div>
                             </div>
                         </button>
                         <button id="btn-return-group3" class="flight-group-btn-return p-4 rounded-lg text-left transition-all duration-300 border-2 border-transparent">
-                            <div class="flight-info" data-flight-id="IT721">
-                                <p class="font-bold text-rose-800">第三組: 台灣虎航 IT721</p>
-                                <p class="text-gray-600 mt-1">起飛: 19:55 (FUK) → 抵達: 21:10 (TPE)</p>
+                            <div class="flight-info" data-flight-id="IT721" data-departure="FUK" data-arrival="TPE" data-date="2025-08-12">
+                                <p class="font-bold text-rose-800">第三組 (3人): 台灣虎航 IT721</p>
+                                <p class="text-sm text-gray-600 mt-1">起飛: 19:55 (FUK) → 抵達: 21:10 (TPE)</p>
                                 <div class="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-500">
-                                    <span id="flight-IT721-terminal">航廈: 載入中...</span>
-                                    <span id="flight-IT721-gate">登機門: 載入中...</span>
-                                    <span id="flight-IT721-status" class="font-bold">狀態: 載入中...</span>
+                                    <span class="col-span-3">狀態: 載入中...</span>
                                 </div>
                             </div>
                         </button>
                     </div>
                 </div>
-                <h2 class="text-2xl font-bold text-rose-700">【第8天】8月12日 (星期一)</h2>
+                <h2 class="text-2xl font-bold text-rose-700">【第8天】8月12日 (星期二)</h2>
                 <p class="mt-1 text-gray-600">滿載而歸，告別九州</p>
                 <div class="weather-container mt-4 p-4 bg-rose-50 border border-rose-200 rounded-lg flex flex-wrap items-center gap-x-6 gap-y-2">
                     <div>
@@ -881,28 +878,47 @@
                         ✨ AI 提供今日旅遊提示
                     </button>
                 </div>
+
+                <!-- 搭乘名單卡片 -->
+                <div class="mt-6 bg-rose-50 p-4 rounded-xl border border-rose-200">
+                    <h4 class="font-bold text-rose-800 text-base mb-3 pb-2 border-b border-rose-200">✈️ 搭乘名單一覽</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                        <div>
+                            <p class="font-semibold text-gray-700 mb-2">第一組 (IT241)</p>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1 text-gray-600">
+                                <span>梁宇睿</span>
+                                <span>黃文煜</span>
+                                <span>鍾沛漩</span>
+                                <span>黃冠穎</span>
+                                <span>黃昶霖</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-700 mb-2">第二組 (BR105)</p>
+                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1 text-gray-600">
+                                <span>翁偉鈞</span>
+                                <span>梁世輝</span>
+                                <span>劉靜雯</span>
+                                <span>梁巧墨</span>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <p class="font-semibold text-gray-700 mb-2">第三組 (IT721)</p>
+                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1 text-gray-600">
+                                <span>陳玟樺</span>
+                                <span>梁宇丞</span>
+                                <span>梁宇任</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- 第八天行程時間軸 -->
                 <div id="timeline-return-group1" class="mt-6 relative">
                     <div class="timeline-item relative pl-10">
                         <div class="timeline-dot"></div>
-                        <p class="font-bold text-rose-600">09:10</p>
-                        <h3 class="font-semibold mt-1">第一組集合 & 前往機場</h3>
-                        <p class="text-sm text-gray-500 mt-1">✈️ 於飯店大廳集合，領取行李後搭乘計程車或地鐵前往福岡機場(FUK)，準備搭機。</p>
-                    </div>
-                    <div class="timeline-item relative pl-10">
-                        <div class="timeline-dot"></div>
-                        <p class="font-bold text-rose-600">12:10</p>
-                        <h3 class="font-semibold mt-1">搭機返回台灣</h3>
-                        <p class="text-sm text-gray-500 mt-1">👋 告別九州，搭乘長榮航空 BR105 返回溫暖的家。</p>
-                    </div>
-                </div>
-
-                <div id="timeline-return-group2" class="mt-6 relative hidden">
-                    <div class="timeline-item relative pl-10">
-                        <div class="timeline-dot"></div>
                         <p class="font-bold text-rose-600">07:55</p>
-                        <h3 class="font-semibold mt-1">第二組集合 & 前往機場</h3>
+                        <h3 class="font-semibold mt-1">第一組集合 & 前往機場</h3>
                         <p class="text-sm text-gray-500 mt-1">✈️ 於飯店大廳集合，領取行李後搭乘計程車或地鐵前往福岡機場(FUK)，準備搭機。</p>
                     </div>
                     <div class="timeline-item relative pl-10">
@@ -912,25 +928,40 @@
                         <p class="text-sm text-gray-500 mt-1">👋 告別九州，搭乘台灣虎航 IT241 返回溫暖的家。</p>
                     </div>
                 </div>
+
+                <div id="timeline-return-group2" class="mt-6 relative hidden">
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">09:10</p>
+                        <h3 class="font-semibold mt-1">第二組集合 & 前往機場</h3>
+                        <p class="text-sm text-gray-500 mt-1">✈️ 於飯店大廳集合，領取行李後搭乘計程車或地鐵前往福岡機場(FUK)，準備搭機。</p>
+                    </div>
+                    <div class="timeline-item relative pl-10">
+                        <div class="timeline-dot"></div>
+                        <p class="font-bold text-rose-600">12:10</p>
+                        <h3 class="font-semibold mt-1">搭機返回台灣</h3>
+                        <p class="text-sm text-gray-500 mt-1">👋 告別九州，搭乘長榮航空 BR105 返回溫暖的家。</p>
+                    </div>
+                </div>
                 
                 <div id="timeline-return-group3" class="mt-6 relative hidden">
                     <div class="timeline-item relative pl-10">
                         <div class="timeline-dot"></div>
-                        <p class="font-bold text-rose-600">09:10</p>
-                        <h3 class="font-semibold mt-1">第三組集合 & 前往機場</h3>
-                        <p class="text-sm text-gray-500 mt-1">✈️ 與第一組同時於飯店大廳集合，一同前往福岡機場(FUK)。</p>
+                        <p class="font-bold text-rose-600">上午</p>
+                        <h3 class="font-semibold mt-1">第三組自由活動</h3>
+                        <p class="text-sm text-gray-500 mt-1">🏨 辦理退房並寄放行李後，可享受最後的自由購物或美食時光。</p>
                     </div>
                     <div class="timeline-item relative pl-10">
                         <div class="timeline-dot"></div>
-                        <p class="font-bold text-rose-600">10:00 - 17:30</p>
-                        <h3 class="font-semibold mt-1">機場自由活動</h3>
-                        <p class="text-sm text-gray-500 mt-1">🛍️ 抵達機場後，可寄放行李，在機場免稅店進行最後採買，或在機場貴賓室/餐廳稍作休息。</p>
+                        <p class="font-bold text-rose-600">約 16:30</p>
+                        <h3 class="font-semibold mt-1">集合前往機場</h3>
+                        <p class="text-sm text-gray-500 mt-1">✈️ 返回飯店領取行李，搭乘計程車或地鐵前往福岡機場(FUK)。</p>
                     </div>
                      <div class="timeline-item relative pl-10">
                         <div class="timeline-dot"></div>
                         <p class="font-bold text-rose-600">約 17:30</p>
-                        <h3 class="font-semibold mt-1">準備登機</h3>
-                        <p class="text-sm text-gray-500 mt-1">💺 前往登機門，準備搭機。</p>
+                        <h3 class="font-semibold mt-1">辦理登機手續</h3>
+                        <p class="text-sm text-gray-500 mt-1">💺 辦理報到、托運行李，準備出境。</p>
                     </div>
                     <div class="timeline-item relative pl-10">
                         <div class="timeline-dot"></div>
@@ -941,13 +972,13 @@
                 </div>
 
                  <div class="mt-6 pt-4 border-t border-gray-200">
-                    <h4 class="font-bold text-gray-800">🏠 住宿資訊</h4>
-                    <div class="mt-2 text-sm bg-gray-50 p-3 rounded-lg">
+                    <h4 class="font-bold text-gray-800">🏠 住宿資訊 (點擊查看名單)</h4>
+                    <button class="accommodation-btn w-full mt-2 text-left bg-gradient-to-r from-rose-100 to-orange-100 p-3 rounded-lg border border-rose-200 hover:from-rose-200 hover:to-orange-200" data-accommodation="crosslife">
                         <p><strong class="font-semibold">日文:</strong> クロスライフ博多天神</p>
                         <p><strong class="font-semibold">英文:</strong> Cross Life Hakata Tenjin</p>
                         <p><strong class="font-semibold">電話:</strong> +81 92-733-0100</p>
                         <p><strong class="font-semibold">地址:</strong> 3 Chome-4-14 Haruyoshi, Chuo Ward, Fukuoka, 810-0003</p>
-                    </div>
+                    </button>
                 </div>
             </section>
             </div>
@@ -967,8 +998,8 @@
     <div id="ai-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
         <div class="modal-content bg-white w-full max-w-lg p-6 rounded-2xl shadow-xl transform scale-95">
             <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="text-lg font-bold text-gray-800">✨ AI 旅遊助理</h3>
-                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800">&times;</button>
+                <h3 id="modal-title" class="text-lg font-bold text-gray-800">✨ AI 旅遊助理</h3>
+                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
             </div>
             <div id="modal-body" class="mt-4 text-gray-700 max-h-[60vh] overflow-y-auto">
                 <div class="flex flex-col items-center justify-center h-32">
@@ -987,77 +1018,23 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // --- PWA Service Worker & Manifest ---
-            const manifest = {
-                "name": "跟著泰坦去旅行 - 釜山福岡篇",
-                "short_name": "泰坦去旅行",
-                "start_url": ".",
-                "display": "standalone",
-                "background_color": "#F8F7F4",
-                "theme_color": "#60a5fa",
-                "description": "一個智慧化的釜山福岡旅遊行程助理",
-                "icons": [
-                    { "src": "https://placehold.co/192x192/60a5fa/ffffff?text=Titan", "type": "image/png", "sizes": "192x192" },
-                    { "src": "https://placehold.co/512x512/60a5fa/ffffff?text=Titan", "type": "image/png", "sizes": "512x512" }
-                ]
-            };
-            const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-            const manifestURL = URL.createObjectURL(manifestBlob);
-            document.querySelector('link[rel="manifest"]').setAttribute('href', manifestURL);
-
-            if ('serviceWorker' in navigator) {
-                const swContent = `
-                    const CACHE_NAME = 'titan-trip-cache-v4';
-                    const urlsToCache = [
-                        '/',
-                        'https://cdn.tailwindcss.com',
-                        'https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap',
-                        'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-                        'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-                    ];
-                    self.addEventListener('install', event => {
-                        event.waitUntil(
-                            caches.open(CACHE_NAME).then(cache => {
-                                console.log('Opened cache');
-                                return cache.addAll(urlsToCache);
-                            })
-                        );
-                    });
-                    self.addEventListener('fetch', event => {
-                        event.respondWith(
-                            caches.match(event.request).then(response => {
-                                return response || fetch(event.request);
-                            })
-                        );
-                    });
-                `;
-                const swBlob = new Blob([swContent], {type: 'application/javascript'});
-                const swURL = URL.createObjectURL(swBlob);
-
-                navigator.serviceWorker.register(swURL)
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('ServiceWorker registration failed: ', error);
-                    });
-            }
-
             // --- 全域錯誤捕獲 ---
             try {
+                // --- 元素選擇器 ---
                 const navLinks = document.querySelectorAll('.nav-link');
                 const sections = document.querySelectorAll('.day-section');
                 const backToTopButton = document.getElementById('back-to-top');
                 const aiTipButtons = document.querySelectorAll('.ai-tip-btn');
+                const accommodationButtons = document.querySelectorAll('.accommodation-btn');
                 const modal = document.getElementById('ai-modal');
+                const modalTitle = document.getElementById('modal-title');
                 const modalBody = document.getElementById('modal-body');
                 const closeModalBtn = document.getElementById('close-modal-btn');
                 const mainTitle = document.getElementById('main-title');
                 const mapElement = document.getElementById('map');
                 const centerMapBtn = document.getElementById('center-map-btn');
-                const installPwaBtn = document.getElementById('install-pwa-btn');
 
-                // --- 地圖初始化 ---
+                // --- 地圖初始化與邏輯 ---
                 let map = null;
                 if (typeof L !== 'undefined' && mapElement) {
                     map = L.map('map', { zoomControl: false }).setView([34.5, 129.5], 7);
@@ -1118,10 +1095,9 @@
                     ]
                 };
                 
-                const createIcon = (svgContent, isPulsing = false) => {
-                    const pulseClass = isPulsing ? 'pulsing-icon' : '';
+                const createIcon = (svgContent) => {
                     return L.divIcon({
-                        html: `<div class="${pulseClass}">${svgContent}</div>`,
+                        html: `<div>${svgContent}</div>`,
                         className: 'custom-map-icon',
                         iconSize: [36, 36],
                         iconAnchor: [18, 36],
@@ -1260,7 +1236,6 @@
 
                 sections.forEach(section => dayObserver.observe(section));
                 
-                // --- Click to locate ---
                 document.querySelectorAll('.timeline-item').forEach(item => {
                     item.addEventListener('click', () => {
                         const locationId = item.dataset.locationId;
@@ -1290,19 +1265,6 @@
                     });
                 });
                 
-                // --- Haptic Feedback on Click ---
-                document.querySelectorAll('.timeline-item').forEach(item => {
-                    item.addEventListener('mousedown', () => {
-                        item.classList.add('timeline-item-active');
-                    });
-                    item.addEventListener('mouseup', () => {
-                        item.classList.remove('timeline-item-active');
-                    });
-                    item.addEventListener('mouseleave', () => {
-                        item.classList.remove('timeline-item-active');
-                    });
-                });
-
                 window.addEventListener('scroll', () => {
                     if (window.scrollY > 300) {
                         backToTopButton.classList.remove('hidden');
@@ -1315,7 +1277,26 @@
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
 
-                // --- AI 功能 (Modal & API) ---
+                // --- AI & Modal 功能 ---
+                const accommodationData = {
+                    newcz: {
+                        title: '🏨 NEWCZ CENTUM Hotel 住宿名單',
+                        content: `<div class="space-y-4"><div><h5 class="font-semibold text-gray-800">🛌 三人房</h5><p class="text-gray-600 pl-4">👤 梁世輝, 劉靜雯, 梁巧墨</p></div><div><h5 class="font-semibold text-gray-800">🛌 三人房</h5><p class="text-gray-600 pl-4">👤 鍾沛漩, 黃冠穎, 黃昶霖</p></div><div><h5 class="font-semibold text-gray-800">🛌 三人房</h5><p class="text-gray-600 pl-4">👤 梁宇睿, 梁宇任, 黃文煜</p></div><div><h5 class="font-semibold text-gray-800">🛌 三人房</h5><p class="text-gray-600 pl-4">👤 翁偉鈞, 陳玟樺, 梁宇丞</p></div></div>`
+                    },
+                    camellia: {
+                        title: '🚢 山茶花號 艙房名單',
+                        content: `<div class="space-y-4"><div><h5 class="font-semibold text-gray-800">🛌 四人房</h5><p class="text-gray-600 pl-4">👤 陳玟樺, 鍾沛漩, 黃冠穎, 黃昶霖</p></div><div><h5 class="font-semibold text-gray-800">🛌 六人房</h5><p class="text-gray-600 pl-4">👤 翁偉鈞, 梁宇丞, 梁宇睿, 梁宇任, 黃文煜, 梁世輝</p></div><div><h5 class="font-semibold text-gray-800">🛌 雙人房</h5><p class="text-gray-600 pl-4">👤 劉靜雯, 梁巧墨</p></div></div>`
+                    },
+                    quintessa: {
+                        title: '📚 Quintessa Hotel Kokura 住宿名單',
+                        content: `<div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="space-y-4"><div><h5 class="font-semibold text-gray-800">🛌 雙人房</h5><p class="text-gray-600 pl-4">👤 劉靜雯, 梁巧墨</p></div><div><h5 class="font-semibold text-gray-800">🛌 雙人房</h5><p class="text-gray-600 pl-4">👤 鍾沛漩, 黃昶霖</p></div><div><h5 class="font-semibold text-gray-800">🛌 雙人房</h5><p class="text-gray-600 pl-4">👤 梁宇睿, 梁宇丞</p></div></div><div class="space-y-4"><div><h5 class="font-semibold text-gray-800">🛌 雙人房</h5><p class="text-gray-600 pl-4">👤 翁偉鈞, 陳玟樺</p></div><div><h5 class="font-semibold text-gray-800">🛌 雙人房</h5><p class="text-gray-600 pl-4">👤 梁世輝, 梁宇任</p></div><div><h5 class="font-semibold text-gray-800">🛌 雙人房</h5><p class="text-gray-600 pl-4">👤 黃文煜, 黃冠穎</p></div></div></div>`
+                    },
+                    crosslife: {
+                        title: '🏙️ Cross Life Hakata Tenjin 住宿名單',
+                        content: `<div class="space-y-4"><div><h5 class="font-semibold text-gray-800">🛌 雙人房</h5><p class="text-gray-600 pl-4">👤 劉靜雯, 梁巧墨</p></div><div><h5 class="font-semibold text-gray-800">🛌 四人房</h5><p class="text-gray-600 pl-4">👤 鍾沛漩, 黃昶霖, 黃冠穎, 黃文煜</p></div><div><h5 class="font-semibold text-gray-800">🛌 四人房</h5><p class="text-gray-600 pl-4">👤 陳玟樺, 翁偉鈞, 梁宇丞, 梁宇任</p></div><div><h5 class="font-semibold text-gray-800">🛌 雙人房</h5><p class="text-gray-600 pl-4">👤 梁世輝, 梁宇睿</p></div></div>`
+                    }
+                };
+
                 const showModal = () => {
                     modal.classList.remove('hidden');
                     modal.querySelector('.modal-content').classList.remove('scale-95');
@@ -1334,131 +1315,114 @@
                         hideModal();
                     }
                 });
-
-                aiTipButtons.forEach(button => {
-                    button.addEventListener('click', () => {
-                        const prompt = button.dataset.prompt;
-                        getAiTips(prompt);
-                    });
-                });
-
-                async function getAiTips(prompt, targetElement = modalBody) {
-                    if(targetElement === modalBody) {
-                        modalBody.innerHTML = `<div class="flex flex-col items-center justify-center h-32">
-                            <div class="loader"></div>
-                            <p class="mt-4 text-sm text-gray-500">正在為您產生專屬提示...</p>
-                        </div>`;
-                        showModal();
+                
+                // --- API 呼叫邏輯 ---
+                async function callGeminiAPI(prompt, generationConfig = null, maxRetries = 3) {
+                    const apiKey = "AIzaSyCXHSI0GuqRsDYG0rknISFaFBof_jTRSJA"; // 由執行環境處理
+                    const model = "gemini-2.5-flash-lite";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                    
+                    const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+                    if (generationConfig) {
+                        payload.generationConfig = generationConfig;
                     }
 
-                    try {
-                        let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-                        const payload = { contents: chatHistory };
-                        const apiKey = ""; 
-                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-                        
-                        const response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
+                    for (let i = 0; i < maxRetries; i++) {
+                        try {
+                            const response = await fetch(apiUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
 
-                        if (!response.ok) {
-                            throw new Error(`HTTP 錯誤! 狀態: ${response.status}`);
-                        }
-
-                        const result = await response.json();
-                        
-                        if (result.candidates && result.candidates.length > 0 &&
-                            result.candidates[0].content && result.candidates[0].content.parts &&
-                            result.candidates[0].content.parts.length > 0) {
-                            
-                            const rawText = result.candidates[0].content.parts[0].text;
-                            
-                            if (targetElement !== modalBody) {
-                                targetElement.innerHTML = rawText.replace(/\*\*/g, '');
-                            } else {
-                                const lines = rawText.split('\n');
-                                let htmlContent = '';
-                                let inList = false;
-
-                                lines.forEach(line => {
-                                    let processedLine = line.trim();
-                                    if (inList && processedLine === '') {
-                                        htmlContent += '</ul>';
-                                        inList = false;
-                                        return;
-                                    }
-                                    processedLine = processedLine.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>');
-                                    if (processedLine.startsWith('* ') || processedLine.startsWith('- ') || /^\d+\.\s/.test(processedLine)) {
-                                        if (!inList) {
-                                            htmlContent += '<ul class="space-y-2">';
-                                            inList = true;
-                                        }
-                                        processedLine = processedLine.replace(/^\s*[\*\-]\s*|\s*\d+\.\s*/, '').trim();
-                                        htmlContent += `<li class="ml-5 list-disc">${processedLine}</li>`;
-                                    } else {
-                                        if (inList) {
-                                            htmlContent += '</ul>';
-                                            inList = false;
-                                        }
-                                        if (processedLine.startsWith('### ')) {
-                                            htmlContent += `<h4 class="text-md font-bold text-gray-800 mt-4 mb-2">${processedLine.replace(/###\s?/, '')}</h4>`;
-                                        } else if (processedLine.startsWith('#### ')) {
-                                            htmlContent += `<h5 class="text-base font-bold text-gray-800 mt-3 mb-1">${processedLine.replace(/####\s?/, '')}</h5>`;
-                                        } else if (processedLine === '---') {
-                                            htmlContent += '<hr class="my-4 border-gray-200">';
-                                        } else if (processedLine) { 
-                                            htmlContent += `<p class="mb-2">${processedLine}</p>`;
-                                        }
-                                    }
-                                });
-                                if (inList) { htmlContent += '</ul>'; }
-                                targetElement.innerHTML = htmlContent;
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
                             }
 
-                        } else {
-                            throw new Error("從API收到的回應格式無效。");
-                        }
+                            const result = await response.json();
+                            if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
+                                return result.candidates[0].content.parts[0].text;
+                            }
+                            if (result.candidates && result.candidates[0]?.finishReason !== 'STOP') {
+                                throw new Error(`API call finished with reason: ${result.candidates[0].finishReason}`);
+                            }
+                            throw new Error("Invalid API response format or empty content");
 
+                        } catch (error) {
+                            console.warn(`API call attempt ${i + 1} failed: ${error.message}`);
+                            if (i === maxRetries - 1) {
+                                throw error;
+                            }
+                            const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                        }
+                    }
+                }
+
+                async function getAiTips(prompt) {
+                    modalTitle.innerHTML = '✨ AI 旅遊助理';
+                    modalBody.innerHTML = `<div class="flex flex-col items-center justify-center h-32"><div class="loader"></div><p class="mt-4 text-sm text-gray-500">正在為您產生專屬提示...</p></div>`;
+                    showModal();
+
+                    try {
+                        const rawText = await callGeminiAPI(prompt);
+                        const htmlContent = rawText
+                            .split('\n')
+                            .map(line => line.trim())
+                            .filter(line => line)
+                            .map(line => {
+                                line = line.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>');
+                                if (line.startsWith('* ') || line.startsWith('- ')) {
+                                    return `<li class="ml-5 list-disc">${line.substring(2)}</li>`;
+                                }
+                                if (/^\d+\.\s/.test(line)) {
+                                     return `<li class="ml-5 list-decimal">${line.replace(/^\d+\.\s/, '')}</li>`;
+                                }
+                                return `<p class="mb-2">${line}</p>`;
+                            })
+                            .join('')
+                            .replace(/<\/li><p/g, '</li></ul><p')
+                            .replace(/<li/g, '<ul><li')
+                            .replace(/<\/li>(?!<li)/g, '</li></ul>');
+                        
+                        modalBody.innerHTML = htmlContent;
                     } catch (error) {
-                        console.error("呼叫 Gemini API 時發生錯誤:", error);
-                        const suggestionEl = targetElement;
-                        const errorMessage = `<span class="retry-suggestion">抱歉，無法取得提示。請點此重試。</span>`;
-                        suggestionEl.innerHTML = errorMessage;
+                        console.error("Error calling Gemini API for tips:", error);
+                        modalBody.innerHTML = `<p>抱歉，無法取得提示。</p><p class="mt-2 text-sm text-gray-500">錯誤: ${error.message}</p><button class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onclick="document.getElementById('close-modal-btn').click()">關閉</button>`;
                     }
                 }
                 
-                // --- 天氣功能 ---
-                async function getWeatherForDate(travelDateStr, city) {
-                    const today = new Date();
-                    const travelDate = new Date(travelDateStr);
-                    today.setHours(0, 0, 0, 0);
-                    travelDate.setHours(0, 0, 0, 0);
-
-                    const diffTime = travelDate - today;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                    await new Promise(resolve => setTimeout(resolve, 500)); 
-
-                    if (diffDays < 0) {
-                        return { type: '過去天氣', forecast: '旅程已結束', suggestion: '期待下次旅行！' };
-                    } else if (diffDays === 0) {
-                        const temp = 27 + Math.floor(Math.random() * 5);
-                        const conditions = ['🌦️ 局部陣雨', '☀️ 晴朗'];
-                        const condition = conditions[Math.floor(Math.random() * conditions.length)];
-                        return { type: '即時天氣', forecast: `${condition} ${temp}°C`, raw: {temp: temp, condition: condition.substring(2)} };
-                    } else if (diffDays <= 7) {
-                        const temp = 26 + Math.floor(Math.random() * 5);
-                        const conditions = ['🌤️ 多雲轉晴', '🌦️ 局部陣雨', '☀️ 晴朗'];
-                        const condition = conditions[Math.floor(Math.random() * conditions.length)];
-                        return { type: '天氣預測', forecast: `${condition} ${temp}°C - ${temp + 4}°C`, raw: {temp: temp, condition: condition.substring(2)} };
-                    } else {
-                        if (city === 'busan') {
-                            return { type: '歷史平均天氣', forecast: '🌦️ 晴時多雲偶有雷陣雨 25°C - 30°C', raw: {temp: 27, condition: '晴時多雲偶有雷陣雨'} };
-                        } else {
-                            return { type: '歷史平均天氣', forecast: '☀️ 晴朗炎熱 26°C - 32°C', raw: {temp: 29, condition: '晴朗炎熱'} };
+                aiTipButtons.forEach(button => {
+                    button.addEventListener('click', () => getAiTips(button.dataset.prompt));
+                });
+                
+                accommodationButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const data = accommodationData[button.dataset.accommodation];
+                        if (data) {
+                            modalTitle.innerHTML = data.title;
+                            modalBody.innerHTML = data.content;
+                            showModal();
                         }
+                    });
+                });
+                
+                // --- 天氣與建議功能 ---
+                async function updateClothingSuggestion(container) {
+                    const suggestionEl = container.querySelector('.clothing-suggestion');
+                    const city = container.closest('.day-section').dataset.city;
+                    try {
+                        const weatherRaw = JSON.parse(suggestionEl.dataset.weatherRaw);
+                        if (!weatherRaw || !weatherRaw.raw_condition || typeof weatherRaw.raw_temp === 'undefined') {
+                            throw new Error("缺少天氣原始數據。");
+                        }
+                        suggestionEl.innerHTML = `<span class="loader mini-loader"></span> 正在產生建議...`;
+                        const clothingPrompt = `依天氣狀況：${weatherRaw.raw_condition}，溫度約 ${weatherRaw.raw_temp}°C。請為一個在${city === 'busan' ? '釜山' : (city === 'oita' ? '大分' : '福岡')}旅遊的台灣家庭團體(含長輩)，提供一段幽默的繁體中文穿著建議(30字以內，不要有不適當的標點符號)。`;
+                        const clothingSuggestionText = await callGeminiAPI(clothingPrompt);
+                        suggestionEl.innerHTML = clothingSuggestionText;
+                    } catch (error) {
+                        console.error("穿著建議載入失敗:", error);
+                        suggestionEl.innerHTML = `<span class="retry-suggestion-clothing text-lg font-semibold">🚫點我解鎖更多🚫</span>`;
                     }
                 }
 
@@ -1466,120 +1430,117 @@
                     const section = container.closest('.day-section');
                     const city = section.dataset.city;
                     const date = section.dataset.date;
-                    const typeEl = container.querySelector('.weather-type');
                     const forecastEl = container.querySelector('.weather-forecast');
                     const suggestionEl = container.querySelector('.clothing-suggestion');
                     
-                    suggestionEl.innerHTML = `<span class="loader mini-loader"></span> 正在產生建議...`;
-
                     try {
-                        const weatherData = await getWeatherForDate(date, city);
-                        typeEl.textContent = `${weatherData.type} (${city === 'busan' ? '釜山' : '福岡'})`;
+                        const weatherPrompt = `請為 ${city} 在 ${date} 提供天氣預報。`;
+                        const generationConfig = {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "OBJECT",
+                                properties: {
+                                    forecast: { type: "STRING", description: "包含表情符號、描述和攝氏溫度範圍的完整預報字串，例如'☀️ 晴朗，高溫 32°C / 低溫 26°C'" },
+                                    raw_temp: { type: "NUMBER", description: "以數字表示的平均攝氏溫度。" },
+                                    raw_condition: { type: "STRING", description: "用五個字以內描述主要天氣狀況，例如“晴時多雲”" }
+                                },
+                                required: ["forecast", "raw_temp", "raw_condition"]
+                            }
+                        };
+                        const weatherJson = await callGeminiAPI(weatherPrompt, generationConfig);
+                        const weatherData = JSON.parse(weatherJson);
+                        
                         forecastEl.textContent = weatherData.forecast;
 
-                        if(weatherData.raw) {
-                            const clothingPrompt = `根據以下天氣資訊，為一個包含長輩、在${city === 'busan' ? '釜山' : '福岡'}旅遊的15人台灣家庭團體，提供今天簡潔的中文穿著建議。天氣狀況：${weatherData.raw.condition}，溫度：約攝氏${weatherData.raw.temp}度。建議應少於30個字。`;
-                            getAiTips(clothingPrompt, suggestionEl);
+                        if (weatherData.raw_condition && typeof weatherData.raw_temp !== 'undefined') {
+                            suggestionEl.dataset.weatherRaw = JSON.stringify(weatherData);
+                            updateClothingSuggestion(container);
                         } else {
-                            suggestionEl.textContent = weatherData.suggestion;
+                            suggestionEl.textContent = "暫無建議資料";
                         }
 
                     } catch (error) {
-                        forecastEl.textContent = '無法取得天氣';
-                        suggestionEl.innerHTML = `<span class="retry-suggestion">抱歉，無法取得提示。請點此重試。</span>`;
+                        console.error("天氣資訊載入失敗:", error);
+                        forecastEl.textContent = '天氣讀取失敗';
+                        suggestionEl.innerHTML = `<span class="retry-suggestion-weather text-lg font-semibold">🚫點我解鎖更多🚫</span>`;
                     }
                 }
                 
+                async function updateAllWeather() {
+                    const weatherContainers = document.querySelectorAll('.weather-container');
+                    const promises = Array.from(weatherContainers).map(updateWeatherForContainer);
+                    await Promise.all(promises);
+                }
+
+                // --- 航班資訊功能 ---
+                async function fetchSingleFlightInfo(el) {
+                    const flightId = el.dataset.flightId;
+                    const detailsDiv = el.querySelector('.grid');
+                    detailsDiv.innerHTML = `<span class="col-span-3">狀態: 載入中...</span>`;
+
+                    try {
+                        const prompt = `查詢 ${el.dataset.date} 從 ${el.dataset.departure} 到 ${el.dataset.arrival} 的 ${flightId} 航班即時狀態。`;
+                        const generationConfig = {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "OBJECT",
+                                properties: {
+                                    terminal: { type: "STRING", description: "航廈, 例如 '第一航廈' 或 '國際線'" },
+                                    gate: { type: "STRING", description: "登機門, 例如 'B7' 或 '未定'" },
+                                    status: { type: "STRING", description: "航班狀態(繁體中文), 例如 '準時', '已延誤', '預計'" },
+                                    statusClass: { type: "STRING", description: "對應的CSS class: 'flight-status-ontime', 'flight-status-delayed', or 'flight-status-scheduled'" }
+                                },
+                                required: ["terminal", "gate", "status", "statusClass"]
+                            }
+                        };
+                        const flightJson = await callGeminiAPI(prompt, generationConfig);
+                        const data = JSON.parse(flightJson);
+
+                        detailsDiv.innerHTML = `
+                            <span>航廈: ${data.terminal}</span>
+                            <span>登機門: ${data.gate}</span>
+                            <span class="font-bold ${data.statusClass}">狀態: ${data.status}</span>`;
+
+                    } catch (error) {
+                        console.error(`航班 ${flightId} 資訊載入失敗:`, error);
+                        detailsDiv.innerHTML = `<span class="col-span-3 text-red-500 text-xs">哀呀！飛機飛過頭了　<span class="underline cursor-pointer retry-flight-btn">點此把他抓回來！</span></span>`;
+                    }
+                }
+                
+                async function updateAllFlightInfo() {
+                    const flightElements = document.querySelectorAll('.flight-info');
+                    const promises = Array.from(flightElements).map(fetchSingleFlightInfo);
+                    await Promise.all(promises);
+                }
+
+                // --- 事件監聽 (重試) ---
                 document.body.addEventListener('click', function(e) {
-                    if (e.target.closest('.retry-suggestion')) {
-                        const container = e.target.closest('.weather-container');
-                        updateWeatherForContainer(container);
+                    if (e.target.closest('.retry-suggestion-weather')) {
+                        updateWeatherForContainer(e.target.closest('.weather-container'));
+                    }
+                    if (e.target.closest('.retry-suggestion-clothing')) {
+                        updateClothingSuggestion(e.target.closest('.weather-container'));
+                    }
+                    if (e.target.classList.contains('retry-flight-btn')) {
+                        fetchSingleFlightInfo(e.target.closest('.flight-info'));
                     }
                 });
 
-                async function updateAllWeather() {
-                    const weatherSections = document.querySelectorAll('.weather-container');
-                    for (const container of weatherSections) {
-                        await updateWeatherForContainer(container);
-                    }
-                }
-
-                // --- 動態航班資訊功能 ---
-                async function simulateFlightApiCall(flightId) {
-                    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1500));
-                    
-                    const flightDb = {
-                        '7C6154': { terminal: '第一航廈', gate: 'A6', status: '準時', statusClass: 'flight-status-ontime' },
-                        'CI188': { terminal: '第二航廈', gate: 'B7', status: '準時', statusClass: 'flight-status-ontime' },
-                        'BR105': { terminal: '國際線航廈', gate: '56', status: '準時', statusClass: 'flight-status-ontime' },
-                        'IT241': { terminal: '國際線航廈', gate: '51', status: '準時', statusClass: 'flight-status-ontime' },
-                        'IT721': { terminal: '國際線航廈', gate: '53', status: '準時', statusClass: 'flight-status-ontime' },
-                    };
-
-                    if (Math.random() < 0.15) { 
-                        const originalGate = flightDb[flightId].gate;
-                        const gatePrefix = originalGate.replace(/[0-9]/g, '');
-                        const newGateNum = parseInt(originalGate.replace(/\D/g, '')) + 1;
-                        flightDb[flightId].gate = `${gatePrefix}${newGateNum} (變更)`;
-                    }
-
-                    if (flightId === 'CI188' && Math.random() < 0.2) { 
-                         flightDb[flightId].status = '延遲';
-                         flightDb[flightId].statusClass = 'flight-status-delayed';
-                    }
-
-                    if (flightDb[flightId]) {
-                        return flightDb[flightId];
-                    } else {
-                        throw new Error('找不到航班資訊');
-                    }
-                }
-
-                async function updateAllFlightInfo() {
-                    const flightElements = document.querySelectorAll('.flight-info');
-                    for (const el of flightElements) {
-                        const flightId = el.dataset.flightId;
-                        if (!flightId) continue;
-                        try {
-                            const data = await simulateFlightApiCall(flightId);
-                            document.getElementById(`flight-${flightId}-terminal`).textContent = `航廈: ${data.terminal}`;
-                            document.getElementById(`flight-${flightId}-gate`).textContent = `登機門: ${data.gate}`;
-                            const statusEl = document.getElementById(`flight-${flightId}-status`);
-                            statusEl.textContent = `狀態: ${data.status}`;
-                            statusEl.className = `font-bold ${data.statusClass}`;
-                        } catch (error) {
-                            console.error(`無法取得航班 ${flightId} 資訊:`, error);
-                            document.getElementById(`flight-${flightId}-terminal`).textContent = `航廈: 讀取失敗`;
-                            document.getElementById(`flight-${flightId}-gate`).textContent = `登機門: 讀取失敗`;
-                            document.getElementById(`flight-${flightId}-status`).textContent = `狀態: 讀取失敗`;
-                        }
-                    }
-                }
-
                 // --- 行程切換 ---
-                // Day 1
                 const btnGroup1 = document.getElementById('btn-group1');
                 const btnGroup2 = document.getElementById('btn-group2');
                 const timelineGroup1 = document.getElementById('timeline-group1');
                 const timelineGroup2 = document.getElementById('timeline-group2');
 
                 function setActiveGroup(groupNum) {
-                    if (groupNum === 1) {
-                        btnGroup1.classList.add('active');
-                        btnGroup2.classList.remove('active');
-                        timelineGroup1.classList.remove('hidden');
-                        timelineGroup2.classList.add('hidden');
-                    } else {
-                        btnGroup1.classList.remove('active');
-                        btnGroup2.classList.add('active');
-                        timelineGroup1.classList.add('hidden');
-                        timelineGroup2.classList.remove('hidden');
-                    }
+                    btnGroup1.classList.toggle('active', groupNum === 1);
+                    btnGroup2.classList.toggle('active', groupNum === 2);
+                    timelineGroup1.classList.toggle('hidden', groupNum !== 1);
+                    timelineGroup2.classList.toggle('hidden', groupNum !== 2);
                 }
                 btnGroup1.addEventListener('click', () => setActiveGroup(1));
                 btnGroup2.addEventListener('click', () => setActiveGroup(2));
                 
-                // Day 8
                 const btnReturnGroup1 = document.getElementById('btn-return-group1');
                 const btnReturnGroup2 = document.getElementById('btn-return-group2');
                 const btnReturnGroup3 = document.getElementById('btn-return-group3');
@@ -1599,42 +1560,28 @@
                 btnReturnGroup2.addEventListener('click', () => setActiveReturnGroup(2));
                 btnReturnGroup3.addEventListener('click', () => setActiveReturnGroup(3));
 
-
                 // --- 初始載入 ---
-                let deferredPrompt;
-                window.addEventListener('beforeinstallprompt', (e) => {
-                    e.preventDefault();
-                    deferredPrompt = e;
-                    installPwaBtn.classList.remove('hidden');
-                });
-
-                installPwaBtn.addEventListener('click', (e) => {
-                    installPwaBtn.classList.add('hidden');
-                    deferredPrompt.prompt();
-                    deferredPrompt.userChoice.then((choiceResult) => {
-                        if (choiceResult.outcome === 'accepted') {
-                            console.log('User accepted the A2HS prompt');
-                        } else {
-                            console.log('User dismissed the A2HS prompt');
-                        }
-                        deferredPrompt = null;
-                    });
-                });
-
-                setActiveGroup(1); 
-                setActiveReturnGroup(1);
-                updateAllWeather();
-                updateMapForDay('day-1');
-                updateAllFlightInfo();
-                if (navLinks.length > 0) {
-                    navLinks[0].classList.add('active-korea');
+                async function init() {
+                    setActiveGroup(1); 
+                    setActiveReturnGroup(1);
+                    
+                    if (navLinks.length > 0) {
+                        navLinks[0].classList.add('active-korea');
+                    }
+                    updateMapForDay('day-1');
+                    updateAllFlightInfo();
+                    updateAllWeather();
                 }
+
+                init();
+
             } catch (error) {
                 console.error("頁面初始化時發生嚴重錯誤:", error);
-                document.body.innerHTML = `<div class="p-8 text-center"><h1 class="text-2xl font-bold text-red-600">頁面載入失敗</h1><p class="mt-4 text-gray-700">很抱歉，頁面發生了無法預期的錯誤，請嘗試重新整理。如果問題持續發生，請聯繫技術支援。</p><p class="mt-2 text-sm text-gray-500">錯誤訊息: ${error.message}</p></div>`;
+                document.body.innerHTML = `<div class="p-8 text-center"><h1 class="text-2xl font-bold text-red-600">頁面載入失敗</h1><p class="mt-4 text-gray-700">很抱歉，頁面發生了無法預期的錯誤，請嘗試重新整理。</p><p class="mt-2 text-sm text-gray-500">錯誤訊息: ${error.message}</p></div>`;
             }
         });
     </script>
 
 </body>
 </html>
+�
