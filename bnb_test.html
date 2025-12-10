@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>長嶺・孤島 Alpisle</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;300;400;500;600;700;900&family=Yuji+Mai&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'paper': '#fdfbf7',
+                        'deep-black': '#1c1917',
+                    },
+                    fontFamily: {
+                        serif: ['"Noto Serif TC"', 'serif'],
+                        art: ['"Yuji Mai"', 'serif'],
+                    },
+                    backgroundImage: {
+                        'noise': "url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22 opacity=%220.05%22/%3E%3C/svg%3E')",
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* --- 全局設定 --- */
+        body {
+            font-family: 'Noto Serif TC', serif;
+            background-color: #fdfbf7;
+            color: #2c3e50;
+            overflow-x: hidden;
+            user-select: none; 
+            -webkit-user-select: none;
+        }
+
+        /* 紙張質感紋理 */
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 9999; opacity: 0.6;
+        }
+
+        ::-webkit-scrollbar { width: 0px; height: 0px; }
+
+        /* --- 特效類別 --- */
+        .text-ink-gradient {
+            background: linear-gradient(180deg, #0f172a 0%, #334155 50%, #64748b 100%);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; color: transparent;
+            filter: contrast(1.2);
+        }
+        .text-mist-gradient {
+            background: linear-gradient(135deg, #2c3e50 0%, #587389 60%, #9ca3af 100%);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; color: transparent;
+        }
+        .poetic-line {
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.7; cursor: default;
+        }
+        .poetic-line:hover {
+            opacity: 1; transform: scale(1.05) translateX(-5px);
+            color: #0f172a; text-shadow: 0 0 20px rgba(148, 163, 184, 0.3);
+        }
+        .caption-style {
+            font-family: ui-sans-serif, system-ui, sans-serif;
+            font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; 
+            color: #94a3b8; font-size: 0.7rem; line-height: 1;
+        }
+        .animate-breathe { animation: breathe 8s ease-in-out infinite; }
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); opacity: 1; filter: blur(0px); }
+            50% { transform: scale(1.02); opacity: 0.95; filter: blur(0.3px); }
+        }
+
+        /* 動畫類別 */
+        .fade-in-up { opacity: 0; transform: translateY(40px); transition: opacity 1.2s ease-out, transform 1.2s ease-out; }
+        .slide-in-left { opacity: 0; transform: translateX(-50px); transition: all 1.5s ease-out; }
+        .slide-in-right { opacity: 0; transform: translateX(50px); transition: all 1.5s ease-out; }
+        .visible { opacity: 1 !important; transform: translate(0, 0) !important; }
+
+        /* 組件 */
+        .vertical-text { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 0.3em; line-height: 2.8; }
+        .bg-video-container { position: relative; overflow: hidden; }
+        
+        .bg-parallax-2 {
+            background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+            background-attachment: fixed; background-size: cover; background-position: center;
+        }
+        .seal {
+            font-family: 'Yuji Mai', serif; color: #8B0000; font-size: 1.5rem; 
+            writing-mode: vertical-rl; text-orientation: upright;
+            border: 2px solid #8B0000; padding: 4px 2px; border-radius: 4px; opacity: 0.9;
+        }
+
+        /* 畫廊卡片 */
+        .image-card { 
+            position: relative; overflow: hidden; border-radius: 2.5rem; 
+            border: 1px solid rgba(255, 255, 255, 0.2); transform: translateZ(0); 
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); 
+            transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .image-card img { 
+            transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.6s ease; 
+            filter: grayscale(15%) brightness(0.95); width: 100%; height: 100%; object-fit: cover;
+        }
+        .image-card:hover {
+            box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3); transform: translateY(-5px); cursor: pointer;
+        }
+        .image-card:hover img { 
+            transform: scale(1.15); filter: grayscale(0%) brightness(1.15);
+        }
+        .cursor-grab { cursor: grab; }
+        .cursor-grabbing { cursor: grabbing; cursor: -webkit-grabbing; }
+        .bg-ink-dark { background-color: #1c1917; }
+
+        /* --- 房型詳情 Modal (全螢幕滑出) --- */
+        #room-modal {
+            position: fixed; top: 0; right: 0; width: 100%; height: 100%;
+            background-color: #fdfbf7; z-index: 100;
+            transform: translateX(100%);
+            transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+            overflow-y: auto;
+        }
+        #room-modal.active { transform: translateX(0); }
+        
+        .modal-hero-img {
+            height: 60vh; width: 100%; object-fit: cover;
+            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+        }
+
+        .amenity-minimal {
+            display: flex; align-items: center; gap: 0.6rem;
+            font-size: 0.8rem; color: #475569; letter-spacing: 0.15em; font-weight: 500;
+            opacity: 0.8; transition: opacity 0.3s;
+            border-bottom: 1px solid transparent; padding-bottom: 4px;
+        }
+        .amenity-minimal:hover { opacity: 1; color: #1e293b; border-bottom-color: #e4e4e7; }
+    </style>
+</head>
+<body>
+
+    <!-- 第一幕：迎賓 (還原為最穩定的 MP4 檔案) -->
+    <section class="min-h-screen flex flex-col justify-center items-center relative bg-video-container py-20">
+        
+        <!-- 背景影片 -->
+        <!-- 注意：Google Drive 連結不支援直接串流播放，請將新影片上傳至 GitHub 並替換此處 src -->
+        <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover z-0">
+            <source src="https://titansweng.github.io/%E5%AE%98%E7%B6%B2%E6%A9%AB%E5%B9%85%E5%B1%B1%E6%B0%B4%E5%BD%B1%E7%89%87%E8%A3%BD%E4%BD%9C.mp4" type="video/mp4">
+        </video>
+
+        <div class="absolute inset-0 bg-white/40 backdrop-blur-[1px] z-10"></div>
+        <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#fdfbf7] z-20 pointer-events-none"></div>
+
+        <div class="container mx-auto px-6 z-30 flex flex-col justify-center items-center h-full">
+            <div class="text-center fade-in-up delay-100 mb-16 relative">
+                <h1 class="text-4xl md:text-6xl font-bold tracking-[0.4em] mb-5 text-ink-gradient pb-2 animate-breathe cursor-default relative z-10 drop-shadow-md">長嶺・孤島</h1>
+                <p class="caption-style z-10 relative mt-2 opacity-90 text-slate-700 font-bold tracking-[0.3em] text-sm md:text-base">Alpisle</p>
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-slate-200/50 rounded-full blur-3xl -z-0 mix-blend-multiply"></div>
+            </div>
+
+            <div class="vertical-text text-lg md:text-xl font-medium text-slate-700 fade-in-up delay-300 md:h-[450px]">
+                <p class="mb-8 md:mb-0 md:ml-16 poetic-line">
+                    遠山不語，孤島成詩。<br>君行至此，已脫塵囂萬象，入一片蒼茫煙波。
+                </p>
+                <p class="mb-8 md:mb-0 md:ml-16 poetic-line">
+                    嶺為雪脈，島似心燈，孤而不寂；<br>一遇如雨，候風待月。
+                </p>
+                <p class="mb-8 md:mb-0 md:ml-16 poetic-line">
+                    此地無他，<br>不過潮聲枕畔，風月為鄰。
+                </p>
+                <p class="mb-8 md:mb-0 md:ml-16 poetic-line">
+                    願君於此，得一念清寧，<br>暫忘浮世身名。
+                </p>
+                <div class="mt-8 md:mt-0 pt-0 md:pt-60 text-right md:text-left transition hover:scale-110 duration-500">
+                    <span class="seal">掃地僧</span>
+                </div>
+            </div>
+        </div>
+        <div class="absolute bottom-12 animate-bounce cursor-pointer opacity-60 z-30 hover:opacity-100 transition-opacity" onclick="document.getElementById('booking-section').scrollIntoView({behavior: 'smooth'})">
+            <svg class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+        </div>
+    </section>
+
+    <!-- 第二幕：緣起 -->
+    <section class="py-40 relative bg-[#fdfbf7]">
+        <div class="container mx-auto px-6 text-center relative z-10">
+            <div class="w-[1px] h-24 bg-gradient-to-b from-slate-200 to-slate-400 mx-auto mb-12 fade-in-up"></div>
+            <h2 class="caption-style mb-16 fade-in-up">Origin・命名緣起</h2>
+            <div class="max-w-4xl mx-auto flex flex-col gap-12 mb-16">
+                <p class="text-2xl md:text-3xl leading-relaxed font-bold text-mist-gradient slide-in-left hover:text-slate-800 transition duration-700">「前途既已註定了是憂患傷心，</p>
+                <p class="text-2xl md:text-3xl leading-relaxed font-bold text-mist-gradient slide-in-right delay-100 hover:text-slate-800 transition duration-700">不論怎生走法，終究避不了、躲不開，</p>
+                <p class="text-2xl md:text-3xl leading-relaxed font-bold text-mist-gradient slide-in-left delay-200 hover:text-slate-800 transition duration-700">便如是咱們在長嶺上遇雨一般。」</p>
+            </div>
+            <div class="text-center fade-in-up delay-300">
+                <p class="text-sm tracking-widest text-slate-500 inline-block px-4 py-2 border-t border-b border-slate-200">— 金庸．《射鵰英雄傳》 —</p>
+            </div>
+            <div class="w-[1px] h-24 bg-gradient-to-t from-slate-200 to-slate-400 mx-auto mt-16 fade-in-up"></div>
+        </div>
+    </section>
+
+    <!-- 第三幕：境 -->
+    <section class="py-32 relative bg-parallax-2">
+        <div class="absolute inset-0 bg-white/50 backdrop-blur-[1px]"></div>
+        <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-[#fdfbf7] to-transparent z-10 pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#fdfbf7] z-10 pointer-events-none"></div>
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="flex flex-col md:flex-row justify-center items-center gap-12 md:gap-20">
+                <div class="md:w-1/3 text-right slide-in-left group">
+                    <h3 class="text-4xl font-bold mb-6 tracking-widest text-ink-gradient group-hover:scale-105 transition duration-500 origin-right">嶺．雪脈</h3>
+                    <p class="text-slate-600 leading-8 mb-6 text-lg font-light">背倚雪山，雲霧繚繞。<br>見證歲月的靜默與堅毅，<br>是大地的脊樑，歸人的依靠。</p>
+                    <div class="w-24 h-[1px] bg-slate-400 ml-auto group-hover:w-full transition-all duration-700"></div>
+                </div>
+                <div class="hidden md:block w-[1px] h-32 bg-slate-300/50"></div>
+                <div class="md:w-1/3 text-left slide-in-right group md:mt-24">
+                    <h3 class="text-4xl font-bold mb-6 tracking-widest text-ink-gradient group-hover:scale-105 transition duration-500 origin-left">島．心燈</h3>
+                    <p class="text-slate-600 leading-8 mb-6 text-lg font-light">遠眺龜山，浮於滄海。<br>如一盞不滅的心燈，<br>潮起潮落，守護一方寧靜。</p>
+                    <div class="w-24 h-[1px] bg-slate-400 mr-auto group-hover:w-full transition-all duration-700"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 第四幕：景・流光 (房型展示，點擊展開) -->
+    <section class="py-32 relative bg-[#fdfbf7] overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-[#fdfbf7] via-[#fdfbf7] to-transparent z-0 pointer-events-none"></div>
+        <div class="container mx-auto px-6 mb-12 flex justify-between items-end fade-in-up relative z-10">
+            <div>
+                <h2 class="text-3xl md:text-5xl font-bold tracking-[0.3em] text-ink-gradient pb-2">景・流光</h2>
+                <p class="caption-style mt-4">Rooms & Gallery</p>
+            </div>
+            <div class="hidden md:block text-slate-400 text-sm tracking-widest vertical-text h-20">拾光・片羽</div>
+        </div>
+
+        <div id="gallery-container" class="w-full flex overflow-x-auto space-x-6 pb-8 px-6 md:px-[calc(50vw-200px)] no-scrollbar relative z-10 cursor-grab" style="overscroll-behavior-x: contain;">
+            
+            <!-- Room 1: 長醉 (Stable & Atmospheric) -->
+            <div onclick="openRoom('changzui')" class="flex-none w-[85vw] md:w-[400px] group image-card bg-black">
+                <div class="h-[550px] relative">
+                    <img src="https://images.unsplash.com/photo-1616594039964-40891a90c3c9?q=80&w=2070&auto=format&fit=crop" loading="lazy" alt="Eternal Reverie" draggable="false">
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.5)_100%)] pointer-events-none z-10 opacity-70 transition-opacity duration-700 group-hover:opacity-40"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-20 pointer-events-none"></div>
+                    <div class="absolute bottom-10 left-8 z-30">
+                        <p class="text-white/70 text-sm tracking-widest mb-3 font-sans border-b border-white/30 inline-block pb-1">01</p>
+                        <h4 class="text-4xl text-white font-bold tracking-[0.4em] mb-2">長醉</h4>
+                        <p class="text-white/60 text-xs tracking-widest font-light opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-2 group-hover:translate-y-0">微醺．光影｜點擊查看詳情</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Room 2: 翠嶺 (High Quality View) -->
+            <div onclick="openRoom('cuiling')" class="flex-none w-[85vw] md:w-[400px] group image-card bg-black">
+                <div class="h-[550px] relative">
+                    <img src="https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?q=80&w=2074&auto=format&fit=crop" loading="lazy" alt="Verdant Ridge" draggable="false">
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.5)_100%)] pointer-events-none z-10 opacity-70 transition-opacity duration-700 group-hover:opacity-40"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-20 pointer-events-none"></div>
+                    <div class="absolute bottom-10 left-8 z-30">
+                        <p class="text-white/70 text-sm tracking-widest mb-3 font-sans border-b border-white/30 inline-block pb-1">02</p>
+                        <h4 class="text-4xl text-white font-bold tracking-[0.4em] mb-2">翠嶺</h4>
+                        <p class="text-white/60 text-xs tracking-widest font-light opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-2 group-hover:translate-y-0">山嵐．聽雨｜點擊查看詳情</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Room 3: 孤舟 (Cozy Solitary) -->
+            <div onclick="openRoom('guzhou')" class="flex-none w-[85vw] md:w-[400px] group image-card bg-black">
+                <div class="h-[550px] relative">
+                    <img src="https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?q=80&w=2070&auto=format&fit=crop" loading="lazy" alt="Solitary Vessel" draggable="false">
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.5)_100%)] pointer-events-none z-10 opacity-70 transition-opacity duration-700 group-hover:opacity-40"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-20 pointer-events-none"></div>
+                    <div class="absolute bottom-10 left-8 z-30">
+                        <p class="text-white/70 text-sm tracking-widest mb-3 font-sans border-b border-white/30 inline-block pb-1">03</p>
+                        <h4 class="text-4xl text-white font-bold tracking-[0.4em] mb-2">孤舟</h4>
+                        <p class="text-white/60 text-xs tracking-widest font-light opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-2 group-hover:translate-y-0">一葦．渡江｜點擊查看詳情</p>
+                    </div>
+                </div>
+            </div>
+
+             <!-- Room 4: 歸島 (High Quality Interior) -->
+             <div onclick="openRoom('guidao')" class="flex-none w-[85vw] md:w-[400px] group image-card bg-black">
+                <div class="h-[550px] relative">
+                    <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?q=80&w=2070&auto=format&fit=crop" loading="lazy" alt="Returning Isle" draggable="false">
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.5)_100%)] pointer-events-none z-10 opacity-70 transition-opacity duration-700 group-hover:opacity-40"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-20 pointer-events-none"></div>
+                    <div class="absolute bottom-10 left-8 z-30">
+                        <p class="text-white/70 text-sm tracking-widest mb-3 font-sans border-b border-white/30 inline-block pb-1">04</p>
+                        <h4 class="text-4xl text-white font-bold tracking-[0.4em] mb-2">歸島</h4>
+                        <p class="text-white/60 text-xs tracking-widest font-light opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-2 group-hover:translate-y-0">彼岸．心燈｜點擊查看詳情</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex-none w-[10vw]"></div>
+        </div>
+        
+        <div class="text-center mt-8 animate-pulse relative z-10">
+            <span class="caption-style !text-slate-600">← 撥動卷軸・點擊以觀房型細節 →</span>
+        </div>
+    </section>
+
+    <!-- 第五幕：入山・歸途 -->
+    <section id="booking-section" class="py-32 relative bg-parallax-2">
+        <div class="absolute inset-0 bg-white/50 backdrop-blur-[1px]"></div>
+        <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-[#fdfbf7] to-transparent z-10 pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-[#1c1917] z-10 pointer-events-none"></div>
+
+        <div class="container mx-auto px-6 text-center relative z-10">
+            <h2 class="text-3xl md:text-5xl font-bold tracking-[0.3em] mb-24 fade-in-up text-ink-gradient pb-2">入山・歸途</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-6xl mx-auto">
+                <a href="#" target="_blank" class="group fade-in-up">
+                    <div class="border-y border-slate-300 py-12 hover:bg-white hover:shadow-2xl transition duration-500 cursor-pointer h-full flex flex-col items-center justify-center transform hover:-translate-y-2 bg-[#fdfbf7]/50 backdrop-blur-sm">
+                        <div class="text-4xl mb-6 text-slate-400 group-hover:text-slate-900 transition transform group-hover:scale-110 duration-500">❖</div>
+                        <h3 class="text-xl md:text-2xl font-bold tracking-widest mb-3 text-ink-gradient">預約．入夢</h3>
+                        <p class="caption-style mb-4">Booking</p>
+                        <p class="mt-2 text-base text-slate-400 font-light group-hover:text-slate-600 transition">查看空房與預訂</p>
+                    </div>
+                </a>
+                <a href="#" target="_blank" class="group fade-in-up delay-100">
+                    <div class="border-y border-slate-300 py-12 hover:bg-white hover:shadow-2xl transition duration-500 cursor-pointer h-full flex flex-col items-center justify-center transform hover:-translate-y-2 bg-[#fdfbf7]/50 backdrop-blur-sm">
+                        <div class="text-4xl mb-6 text-slate-400 group-hover:text-slate-900 transition transform group-hover:scale-110 duration-500">◈</div>
+                        <h3 class="text-xl md:text-2xl font-bold tracking-widest mb-3 text-ink-gradient">尋路．歸途</h3>
+                        <p class="caption-style mb-4">Location</p>
+                        <p class="mt-2 text-base text-slate-400 font-light group-hover:text-slate-600 transition">宜蘭．雪山腳下</p>
+                    </div>
+                </a>
+                <a href="#" target="_blank" class="group fade-in-up delay-200">
+                    <div class="border-y border-slate-300 py-12 hover:bg-white hover:shadow-2xl transition duration-500 cursor-pointer h-full flex flex-col items-center justify-center transform hover:-translate-y-2 bg-[#fdfbf7]/50 backdrop-blur-sm">
+                        <div class="text-4xl mb-6 text-slate-400 group-hover:text-slate-900 transition transform group-hover:scale-110 duration-500">✉</div>
+                        <h3 class="text-xl md:text-2xl font-bold tracking-widest mb-3 text-ink-gradient">問訊．尺素</h3>
+                        <p class="caption-style mb-4">Contact</p>
+                        <p class="mt-2 text-base text-slate-400 font-light group-hover:text-slate-600 transition">AI 智能管家為您服務</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-ink-dark text-slate-400 py-20 text-center font-sans text-xs tracking-widest relative z-10">
+        <div class="container mx-auto px-6">
+            <div class="mb-8">
+                <h2 class="text-2xl font-serif text-slate-300 tracking-[0.2em] opacity-80">長嶺・孤島</h2>
+            </div>
+            <p class="text-slate-500 hover:text-slate-300 transition duration-300">&copy; 2025 Alpisle. All Rights Reserved.</p>
+            <p class="caption-style mt-3 !text-slate-600">Designed for Google Sites Ecosystem</p>
+            <div class="w-12 h-[1px] bg-yellow-700/30 mx-auto mt-12"></div>
+        </div>
+    </footer>
+
+    <!-- ROOM DETAIL OVERLAY (Hidden by default) -->
+    <div id="room-modal" class="shadow-2xl">
+        <!-- Close Button -->
+        <button onclick="closeRoom()" class="fixed top-8 right-8 z-50 text-slate-500 hover:text-slate-800 transition duration-300 mix-blend-difference">
+            <span class="text-sm tracking-[0.3em] font-light mr-2">CLOSE</span>
+            <span class="text-3xl font-light">×</span>
+        </button>
+
+        <!-- Dynamic Content Container -->
+        <div id="modal-content"></div>
+    </div>
+
+    <script>
+        // Global flag to track if the user is dragging the gallery
+        let isGalleryDrag = false;
+
+        // Room Data
+        const rooms = {
+            changzui: {
+                title: "長醉",
+                subtitle: "ETERNAL REVERIE SUITE",
+                floor: "3F 雲深",
+                desc: "位於建築最高處，視野無遮蔽。房內設有落地景觀浴缸，正對綿延雪脈。晨起觀雲海，夜半摘星辰，適合家庭或摯友共飲一杯山色。",
+                img: "https://images.unsplash.com/photo-1616594039964-40891a90c3c9?q=80&w=2070&auto=format&fit=crop",
+                amenities: ["15坪・四人房", "景觀浴缸", "加大雙人床 x2", "Dyson 吹風機"]
+            },
+            cuiling: {
+                title: "翠嶺",
+                subtitle: "VERDANT RIDGE SUITE",
+                floor: "3F 雲深",
+                desc: "引翠入室，綠意盎然。特設寬敞乾濕分離衛浴與大型花灑，如置身山林瀑布之下，洗去一身塵埃，還復清淨本心。",
+                img: "https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?q=80&w=2074&auto=format&fit=crop",
+                amenities: ["14坪・四人房", "乾濕分離衛浴", "標準雙人床 x2", "55吋電視"]
+            },
+            guzhou: {
+                title: "孤舟",
+                subtitle: "SOLITARY VESSEL SUITE",
+                floor: "2F 聽濤",
+                desc: "私密、沈穩，配備深泡浴缸，如一葉扁舟，載你渡過喧囂之海，享受純粹的二人時光。",
+                img: "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?q=80&w=2070&auto=format&fit=crop",
+                amenities: ["10坪・雙人房", "深泡浴缸", "加大雙人床 x1", "Marshall 音響"]
+            },
+            guidao: {
+                title: "歸島",
+                subtitle: "RETURNING ISLE SUITE",
+                floor: "2F 聽濤",
+                desc: "全館最大的起居空間，配備豪華浴缸與獨立休憩客廳。無論是家庭聚會或三五好友，皆能在此卸下甲冑，重拾歸人的溫暖。",
+                img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?q=80&w=2070&auto=format&fit=crop",
+                amenities: ["16坪・四人房", "豪華浴缸", "加大雙人床 x2", "獨立客廳"]
+            }
+        };
+
+        function openRoom(roomId) {
+            // Guard clause: If user was dragging, do not open modal
+            if (isGalleryDrag) return;
+
+            const room = rooms[roomId];
+            const modal = document.getElementById('room-modal');
+            const content = document.getElementById('modal-content');
+            
+            // Build Icons HTML
+            const amenitiesHTML = room.amenities.map(item => `
+                <div class="amenity-minimal">
+                    <span class="w-1 h-1 bg-slate-400 rounded-full"></span>
+                    ${item}
+                </div>
+            `).join('');
+
+            // Inject Content
+            content.innerHTML = `
+                <div class="w-full h-[60vh] relative">
+                    <img src="${room.img}" class="modal-hero-img w-full h-full object-cover">
+                    <div class="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-[#fdfbf7] to-transparent"></div>
+                </div>
+                
+                <div class="container mx-auto px-6 max-w-4xl -mt-20 relative z-10 pb-20">
+                    <div class="bg-white/95 backdrop-blur-xl p-8 md:p-12 shadow-2xl rounded-[2px] border border-white/50">
+                        <div class="flex flex-col items-center text-center">
+                            <span class="text-xs tracking-[0.3em] text-slate-400 mb-4 uppercase">${room.floor}</span>
+                            <h2 class="text-4xl md:text-5xl font-light tracking-[0.4em] text-ink-gradient mb-2 font-medium">${room.title}</h2>
+                            <p class="text-xs text-slate-500 tracking-[0.25em] font-sans mb-10 uppercase">${room.subtitle}</p>
+                            
+                            <div class="w-12 h-[1px] bg-slate-300 mb-10"></div>
+                            
+                            <p class="text-slate-800 leading-9 mb-12 font-light opacity-95 tracking-wide max-w-2xl font-medium">
+                                ${room.desc}
+                            </p>
+
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 w-full border-t border-slate-200 pt-8 justify-items-center">
+                                ${amenitiesHTML}
+                            </div>
+
+                            <a href="#" class="mt-12 inline-block border border-slate-800 px-12 py-4 rounded-sm text-slate-800 tracking-[0.2em] hover:bg-slate-800 hover:text-white transition duration-500 text-sm">
+                                立即預約
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Stop background scrolling
+        }
+
+        function closeRoom() {
+            const modal = document.getElementById('room-modal');
+            modal.classList.remove('active');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fade Animations
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            document.querySelectorAll('.fade-in-up, .slide-in-left, .slide-in-right').forEach(el => observer.observe(el));
+
+            // Hybrid Physics Engine V2
+            const slider = document.getElementById('gallery-container');
+            let state = {
+                currentPos: 0, targetPos: 0, maxPos: 0,
+                isDragging: false, startX: 0, startScroll: 0,
+                autoSpeed: 0.4, direction: 1, hoverStop: false
+            };
+            const CONFIG = { dragResistance: 0.8, lerpFactor: 0.08, edgeBuffer: 300, bounceWait: 60 };
+            let waitTimer = 0;
+
+            function updateDimensions() {
+                state.maxPos = slider.scrollWidth - slider.clientWidth;
+                state.targetPos = Math.min(state.targetPos, state.maxPos);
+            }
+            window.addEventListener('resize', updateDimensions);
+            updateDimensions();
+
+            function physicsLoop() {
+                updateDimensions();
+                if (!state.isDragging && !state.hoverStop) {
+                    let distToEdge = (state.direction === 1) ? state.maxPos - state.targetPos : state.targetPos;
+                    let currentSpeed = state.autoSpeed;
+                    if (distToEdge < CONFIG.edgeBuffer) {
+                        const brakeFactor = Math.sin((distToEdge / CONFIG.edgeBuffer) * (Math.PI / 2));
+                        currentSpeed = Math.max(0.1, state.autoSpeed * brakeFactor);
+                    }
+                    if (distToEdge <= 0.5) {
+                        if (waitTimer < CONFIG.bounceWait) { waitTimer++; currentSpeed = 0; } 
+                        else { state.direction *= -1; waitTimer = 0; }
+                    }
+                    state.targetPos += currentSpeed * state.direction;
+                }
+                state.targetPos = Math.max(0, Math.min(state.targetPos, state.maxPos));
+                state.currentPos += (state.targetPos - state.currentPos) * CONFIG.lerpFactor;
+                slider.scrollLeft = state.currentPos;
+                requestAnimationFrame(physicsLoop);
+            }
+            physicsLoop();
+
+            const onDown = (x) => {
+                isGalleryDrag = false; // Reset drag flag on touch/click down
+                state.isDragging = true; 
+                state.startX = x; 
+                state.startScroll = state.targetPos;
+                slider.classList.add('cursor-grabbing'); 
+                slider.classList.remove('cursor-grab');
+            };
+            const onMove = (x) => {
+                if (!state.isDragging) return;
+                
+                // Detect drag movement to prevent accidental clicks
+                if (Math.abs(x - state.startX) > 5) {
+                    isGalleryDrag = true;
+                }
+
+                const walk = (x - state.startX) * CONFIG.dragResistance;
+                state.targetPos = state.startScroll - walk;
+            };
+            const onUp = () => {
+                state.isDragging = false;
+                slider.classList.remove('cursor-grabbing'); slider.classList.add('cursor-grab');
+            };
+
+            slider.addEventListener('mousedown', e => onDown(e.pageX));
+            window.addEventListener('mousemove', e => onMove(e.pageX));
+            window.addEventListener('mouseup', onUp);
+            slider.addEventListener('touchstart', e => onDown(e.touches[0].pageX), {passive: true});
+            window.addEventListener('touchmove', e => onMove(e.touches[0].pageX), {passive: true});
+            window.addEventListener('touchend', onUp);
+            slider.addEventListener('mouseenter', () => state.hoverStop = true);
+            slider.addEventListener('mouseleave', () => state.hoverStop = false);
+        });
+    </script>
+</body>
+</html>
